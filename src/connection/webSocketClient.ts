@@ -1,84 +1,69 @@
-import { client as WebSocketClient } from 'websocket';
+import { client as WebSocketClient, connection } from 'websocket';
 import pako from 'pako';
-import { getTimestamp } from '../auth/utils';
-import { createSignature } from '../auth/signature';
-import { config } from '../config';
+import { ErrorData, FeedeeHash, PingData, PriceData, SocketMessage, SocketMessageData } from './types';
+import { Feedee } from '../feedees/types';
+import { log } from '../utils/logger';
 
+const client = new WebSocketClient();
 
-export const client = new WebSocketClient();
+const pong = (connection: connection, message: PingData) => {
+	connection.send(
+		JSON.stringify({
+			pong: message.ping,
+		})
+	);
 
-export const initSocketConnection = () => {
-	const timestamp = getTimestamp();
+	log('♥');
+};
 
-	const signature = createSignature({
-		method: 'GET',
-		baseUrl: 'api.huobi.pro',
-		path: '/ws',
-		params: {
-			Timestamp: timestamp,
-			accessKey: config.ACCESS_KEY,
-			signatureMethod: config.SIGNATURE_METHOD,
-			signatureVersion: config.SOCKET_SIGNATURE_VERSION,
-		},
-	});
-
-	const websocketAuthPayload = {
-		action: 'req',
-		ch: 'auth',
-		params: {
-			authType: 'api',
-			accessKey: config.ACCESS_KEY,
-			signatureMethod: config.SIGNATURE_METHOD,
-			signatureVersion: config.SOCKET_SIGNATURE_VERSION,
-			timestamp: timestamp,
-			signature,
-		},
-	};
+export const initSocketConnection = (feedees: Feedee[]) => {
+	const feedeeByChannel: FeedeeHash = feedees.reduce((hash, feedee) => {
+		hash[feedee._channel] = feedee;
+		return hash;
+	}, {} as FeedeeHash);
 
 	client.on('connect', (connection) => {
-    console.log('Websocket connected');
+		log('Websocket connected');
 
-    connection.on('ping', (cancel, payload) => {
-      console.log('Ping received');
-      console.log(cancel);
-      console.log(payload);
-    });
+		feedees.forEach(feedee => feedee.init(connection));
 
-    connection.on('message', (data) => {
-      type Message = {
-				type: 'binary';
-				binaryData: Buffer;
-			};
+		connection.on('message', (data) => {
+			const message = data as SocketMessage;
 
-      type Ping = {
-				ping: number;
-			};
+			const uncompressedMessage = pako.ungzip(message.binaryData).buffer;
+			const bufferedMessage = Buffer.from(uncompressedMessage);
+			const parsedMessage = JSON.parse(bufferedMessage.toString()) as SocketMessageData;
 
-      const message = data as Message;
+			// Ping-pong with server
+			if (parsedMessage.hasOwnProperty('ping')) {
+				pong(connection, parsedMessage as PingData);
+			}
 
+			if (parsedMessage.hasOwnProperty('err-code')) {
+				const errorMessage = parsedMessage as ErrorData;
+				log('Error!', errorMessage);
+			}
 
-      const uncompressedMessage = pako.ungzip(message.binaryData).buffer;
-      const bufferedMessage = Buffer.from(uncompressedMessage);
-      const parsedMessage = JSON.parse(bufferedMessage.toString()) as Ping;
+			if (parsedMessage.hasOwnProperty('ch')) {
+				const priceMessage = parsedMessage as PriceData;
 
-      console.log('Message received', parsedMessage);
+				const handler = feedeeByChannel[priceMessage.ch];
 
-      connection.send(
-				JSON.stringify({
-					pong: parsedMessage.ping,
-				})
-			);
+				if (!handler) {
+					return log('No handler provided for channel', priceMessage.ch);
+				}
 
-      console.log('Pong sent');
+				handler.handle(priceMessage);
+			}
 		});
 
-    connection.on('close', (code, desc) => {
-      console.log('Websocket connection closed', code, desc);
-    })
+		connection.on('close', (code, desc) => {
+			log('Websocket connection closed', code, desc);
+		});
 	});
 
 	client.on('connectFailed', (err) => {
-		console.log('Websocket connection failed', err);
+		log('Websocket connection failed', err);
 	});
 };
 

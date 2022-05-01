@@ -1,11 +1,8 @@
-import { getAccountValuation } from "./src/api/v2/account/valuation";
 import { initSocketConnection } from "./src/connection/webSocketClient";
+import { feedees } from "./src/feedees";
 
 const init = async () => {
-  initSocketConnection()
-  const { data } = await getAccountValuation();
-
-  console.log(data.data.totalBalance);
+  initSocketConnection(feedees);
 }
 
 init();
