@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const requester = axios.create({ baseURL: 'https://api.huobi.pro' });
+export const requester = axios.create();
 
 requester.interceptors.request.use(config => {
   return config;

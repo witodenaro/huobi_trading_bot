@@ -18,7 +18,7 @@ const pong = (connection: connection, message: PingData) => {
 
 export const initSocketConnection = (feedees: Feedee[]) => {
 	const feedeeByChannel: FeedeeHash = feedees.reduce((hash, feedee) => {
-		hash[feedee._channel] = feedee;
+		hash[feedee.channel] = feedee;
 		return hash;
 	}, {} as FeedeeHash);
 
@@ -53,7 +53,7 @@ export const initSocketConnection = (feedees: Feedee[]) => {
 					return log('No handler provided for channel', priceMessage.ch);
 				}
 
-				handler.handle(priceMessage);
+				handler.handleMessage(priceMessage);
 			}
 		});
 

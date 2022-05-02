@@ -7,12 +7,16 @@ interface IRequest {
   method: string;
   path: string;
   params?: object;
+	body?: object;
+	baseUrl?: string;
 }
 
-export const request = async <T>({
+export const request = async ({
   method,
   path,
   params: extraParams,
+	body,
+	baseUrl = config.BASE_URL,
 }: IRequest) => {
 	const timestamp = getTimestamp();
 
@@ -20,24 +24,26 @@ export const request = async <T>({
 		AccessKeyId: config.ACCESS_KEY,
 		SignatureVersion: config.SIGNATURE_VERSION,
 		SignatureMethod: config.SIGNATURE_METHOD,
-		'order-id': 1234567890,
 		Timestamp: timestamp,
 		...extraParams,
+		...body,
 	};
 
 	const signatureEncoded = createSignature({
 		method,
-		baseUrl: config.BASE_URL,
+		baseUrl,
 		path,
 		params,
 	});
 
 	const response = await requester(path, {
+		baseURL: baseUrl,
 		method,
 		params: {
 			...params,
 			Signature: signatureEncoded,
 		},
+		data: body,
 	});
 	
 	return response;

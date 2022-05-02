@@ -1,30 +1,11 @@
-import { connection } from 'websocket';
+import BasePrice from "./base";
 
-import { SYMBOLS } from '../symbols';
-import { Feedee } from '../types';
+import { SYMBOLS } from "../symbols";
+import { Feedee } from "../types";
 
-import { PriceData } from '../../connection/types';
-import { log } from '../../utils/logger';
-
-class XnoPriceFeedee implements Feedee {
-	_symbol = SYMBOLS.XNO;
-	_channel = `market.${this._symbol}.ticker`;
-	_latestPrice: number | null = null;
-
-	init(connection: connection) {
-		const requestPayload = {
-			sub: this._channel,
-		};
-
-		connection.send(JSON.stringify(requestPayload));
-	}
-
-	handle(message: PriceData) {
-		if (this._latestPrice !== message.tick.close) {
-			log('XNO price changed: ', message.tick.close);
-      this._latestPrice = message.tick.close;
-		}
-	}
+class XnoPriceFeedee extends BasePrice implements Feedee {
+  _symbol = SYMBOLS.XNO;
+  channel = `market.${this._symbol}.ticker`;
 }
 
 export default new XnoPriceFeedee();
