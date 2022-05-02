@@ -1,8 +1,8 @@
 import { connection } from "websocket";
-import { Feedee, PriceListener } from "../types";
-import { PriceData } from "../../connection/types";
+import { PriceFeedee, PriceListener } from "../types";
+import { PriceMessage } from "../../connection/spot/types";
 
-abstract class BasePrice implements Feedee {
+abstract class BasePrice implements PriceFeedee {
   abstract channel: string;
 	private _listeners: PriceListener[] = [];
 	private _latestPrice: null | number = null;
@@ -22,7 +22,7 @@ abstract class BasePrice implements Feedee {
     return this._latestPrice;
   }
 
-	handleMessage(message: PriceData) {
+	handleMessage(message: PriceMessage) {
 		if (this._latestPrice !== message.tick.close) {
 			this._handlePriceChange(message.tick.close);
 		}

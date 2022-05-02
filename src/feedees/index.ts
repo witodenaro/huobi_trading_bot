@@ -1,5 +1,5 @@
-import BtcPriceFeedee from './prices/btcPrice';
-import XnoPriceFeedee from './prices/xnoPrice';
+import EthOrderFeedee from './orders/ethOrder';
+import EthPriceFeedee from './prices/ethPrice';
 
-
-export const feedees = [BtcPriceFeedee, XnoPriceFeedee];
+export const priceFeedees = [EthPriceFeedee];
+export const orderFeedees = [EthOrderFeedee];

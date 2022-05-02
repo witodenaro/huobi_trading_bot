@@ -22,11 +22,10 @@ export const request = async ({
 
 	const params = {
 		AccessKeyId: config.ACCESS_KEY,
-		SignatureVersion: config.SIGNATURE_VERSION,
+		SignatureVersion: config.REST_SIGNATURE_VERSION,
 		SignatureMethod: config.SIGNATURE_METHOD,
 		Timestamp: timestamp,
 		...extraParams,
-		...body,
 	};
 
 	const signatureEncoded = createSignature({
@@ -37,7 +36,7 @@ export const request = async ({
 	});
 
 	const response = await requester(path, {
-		baseURL: baseUrl,
+		baseURL: `https://${baseUrl}`,
 		method,
 		params: {
 			...params,

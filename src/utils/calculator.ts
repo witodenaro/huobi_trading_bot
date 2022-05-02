@@ -1,5 +1,7 @@
+import { toFixed } from "./number";
+
 export const calculateStopLoss = (price: number, stopLossPercentageDeviation: number) => {
-	return price + (price * stopLossPercentageDeviation) / 100;
+	return toFixed(price + (price * stopLossPercentageDeviation) / 100, 2);
 };
 
 export const calculatePlainDifference = (entryPrice: number, latestPrice: number) => {
@@ -10,4 +12,8 @@ export const calculatePercentageDifference = (entryPrice: number, latestPrice: n
 	const plainDifference = latestPrice - entryPrice;
 
 	return (plainDifference / entryPrice) * 100;
+};
+
+export const calculateEqualAmount = (latestPrice: number, marginAvailable: number) => {
+	return (marginAvailable / latestPrice) / 2;
 };

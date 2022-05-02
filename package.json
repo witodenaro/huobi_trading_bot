@@ -7,6 +7,7 @@
     "@types/crypto-js": "^4.1.1",
     "@types/node": "^17.0.29",
     "@types/pako": "^1.0.3",
+    "@types/uuid": "^8.3.4",
     "@types/websocket": "^1.0.5",
     "axios": "^0.27.2",
     "crypto-js": "^4.1.1",
@@ -15,9 +16,15 @@
     "ts-node": "^10.7.0",
     "tslib": "^2.4.0",
     "typescript": "^4.6.3",
+    "uuid": "^8.3.2",
     "websocket": "^1.0.34"
   },
   "scripts": {
     "start": "ts-node index.ts"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.22.0",
+    "@typescript-eslint/parser": "^5.22.0",
+    "eslint": "^8.14.0"
   }
 }

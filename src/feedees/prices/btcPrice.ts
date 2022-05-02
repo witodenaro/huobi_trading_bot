@@ -1,11 +1,11 @@
-import BasePrice from "./base";
+import BasePrice from './base';
 
-import { SYMBOLS } from "../symbols";
-import { Feedee } from "../types";
+import { PriceFeedee } from '../types';
+import { MarketSymbol } from '../../types/order';
 
-class BtcPriceFeedee extends BasePrice implements Feedee {
-  _symbol = SYMBOLS.BTC;
-  channel = `market.${this._symbol}.ticker`;
+class BtcPriceFeedee extends BasePrice implements PriceFeedee {
+	_symbol = MarketSymbol.BTCUSDT;
+	channel = `market.${this._symbol}.ticker`;
 }
 
 export default new BtcPriceFeedee();
