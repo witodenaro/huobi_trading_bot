@@ -30,8 +30,6 @@ export const searchForInitInfo = (accounts: Account[]) => {
 		return null;
 	}
 
-	console.log(account)
-
 	const { positions } = account;
 
 	const shortPos = positions.find((pos) => pos.direction === Direction.SELL);

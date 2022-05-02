@@ -45,8 +45,6 @@ export class Short extends Position {
 			sl_trigger_price: price,
 		});
 
-		console.log(price, response.data);
-
 		const { sl_order } = response.data.data;
 
 		if (!sl_order) {
