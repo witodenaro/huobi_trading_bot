@@ -3,24 +3,25 @@ import { PriceFeedee, PriceListener } from "../types";
 import { PriceMessage } from "../../connection/spot/types";
 
 abstract class BasePrice implements PriceFeedee {
-  abstract channel: string;
+	abstract channel: string;
 	private _listeners: PriceListener[] = [];
 	private _latestPrice: null | number = null;
 
-  protected handlePriceChange(price: number) {};
+	protected handlePriceChange(price: number) {
+		// Can be implemented in child classes
+	}
 
-  init(connection: connection) {
-    const requestPayload = {
+	init(connection: connection) {
+		const requestPayload = {
 			sub: this.channel,
 		};
 
-    connection.send(JSON.stringify(requestPayload));
-  };
+		connection.send(JSON.stringify(requestPayload));
+	}
 
-
-  getLatestPrice() {
-    return this._latestPrice;
-  }
+	getLatestPrice() {
+		return this._latestPrice;
+	}
 
 	handleMessage(message: PriceMessage) {
 		if (this._latestPrice !== message.tick.close) {
@@ -36,14 +37,14 @@ abstract class BasePrice implements PriceFeedee {
 		this._listeners = this._listeners.filter((sub) => listener !== sub);
 	}
 
-  private _handlePriceChange(price: number) {
+	private _handlePriceChange(price: number) {
 		this._latestPrice = price;
 		this.handlePriceChange(price);
-    this._notifyPriceListeners();
+		this._notifyPriceListeners();
 	}
 
 	private _notifyPriceListeners() {
-    if (!this._latestPrice) return;
+		if (!this._latestPrice) return;
 
 		this._listeners.forEach((listener) => {
 			listener(this._latestPrice as number);

@@ -1,7 +1,7 @@
-import BasePrice from './base';
+import BasePrice from "./base";
 
-import { PriceFeedee } from '../types';
-import { MarketSymbol } from '../../types/order';
+import { PriceFeedee } from "../types";
+import { MarketSymbol } from "../../types/order";
 
 class BtcPriceFeedee extends BasePrice implements PriceFeedee {
 	_symbol = MarketSymbol.BTCUSDT;

@@ -1,54 +1,45 @@
 export enum AssetSymbol {
-	BTC = 'BTC',
-	ETH = 'ETH',
-	USDT = 'USDT',
-	XNO = 'NANO',
+	BTC = "BTC",
+	ETH = "ETH",
+	USDT = "USDT",
+	XNO = "NANO",
 }
 
 export enum MarketSymbol {
-	ETHUSDT = 'ethusdt',
-	BTCUSDT = 'bthusdt',
-	XNOUSDT = 'nanousdt',
+	ETHUSDT = "ethusdt",
+	BTCUSDT = "bthusdt",
+	XNOUSDT = "nanousdt",
 }
 
 export enum ContractCode {
-	BTC_USDT = 'BTC-USDT',
-	ETH_USDT = 'ETH-USDT',
+	BTC_USDT = "BTC-USDT",
+	ETH_USDT = "ETH-USDT",
 }
 
 export enum MarginAccount {
-	BTC_USDT = 'BTC-USDT',
-	ETH_USDT = 'ETH-USDT',
+	BTC_USDT = "BTC-USDT",
+	ETH_USDT = "ETH-USDT",
 }
 
 export enum OrderPriceType {
-	LIMIT = 'limit',
-	BBO = 'opponent',
-	POST_ONLY = 'post_only',
-	OPTIMAL_5 = 'optimal_5',
-	OPTIMAL_10 = 'optimal_10',
-	OPTIMAL_20 = 'optimal_20',
+	LIMIT = "limit",
+	BBO = "opponent",
+	POST_ONLY = "post_only",
+	OPTIMAL_5 = "optimal_5",
+	OPTIMAL_10 = "optimal_10",
+	OPTIMAL_20 = "optimal_20",
 }
 
 export enum Direction {
-	BUY = 'buy',
-	SELL = 'sell',
+	BUY = "buy",
+	SELL = "sell",
 }
 
 export enum OrderOffset {
-	OPEN = 'open',
-	CLOSE = 'close',
-	BOTH = 'both',
+	OPEN = "open",
+	CLOSE = "close",
+	BOTH = "both",
 }
-
-/* 
-  Combinations: 
-
-  open long: direction - buy、offset - open
-  close long: direction -sell、offset - close
-  open short: direction -sell、offset - open
-  close short: direction -buy、offset - close
-*/
 
 export enum OrderType {
 	QUOTATION = 1,
@@ -69,18 +60,18 @@ export enum OrderStatus {
 }
 
 export enum OrderSource {
-	SYSTEM = 'system',
-	WEB = 'web',
-	API = 'api',
-	M = 'm',
-	RISK = 'risk',
-	SETTLEMENT = 'settlement',
-	IOS = 'ios',
-	ANDROID = 'android',
-	WINDOWS = 'windows',
-	MAC = 'mac',
-	TRIGGER = 'trigger',
-	TPSL = 'tpsl',
+	SYSTEM = "system",
+	WEB = "web",
+	API = "api",
+	M = "m",
+	RISK = "risk",
+	SETTLEMENT = "settlement",
+	IOS = "ios",
+	ANDROID = "android",
+	WINDOWS = "windows",
+	MAC = "mac",
+	TRIGGER = "trigger",
+	TPSL = "tpsl",
 }
 
 export enum OrderLiquidationType {
@@ -92,12 +83,12 @@ export enum OrderLiquidationType {
 
 export type NumberBool = 0 | 1;
 export enum MarginMode {
-	ISOLATED = 'isolated',
-	CROSS = 'cross',
+	ISOLATED = "isolated",
+	CROSS = "cross",
 }
 
-export type PositionMode = 'single_side' | 'dual_side';
-export type Role = 'taker' | 'maker';
+export type PositionMode = "single_side" | "dual_side";
+export type Role = "taker" | "maker";
 
 export type OpenOrder = {
 	update_time: number;

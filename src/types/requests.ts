@@ -1,1 +1,1 @@
-export type ResponseStatus = 'ok' | 'error';
+export type ResponseStatus = "ok" | "error";

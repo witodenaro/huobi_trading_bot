@@ -5,8 +5,8 @@ import { ContractCode, Direction, OrderPriceType } from "../../../types/order";
 import { ResponseStatus } from "../../../types/requests";
 
 export interface Order {
-  order_id: number;
-  order_id_str: string;
+	order_id: number;
+	order_id_str: string;
 }
 
 interface Response {
@@ -23,9 +23,9 @@ type Params = {
 	volume: number; // number of orders (always 1)
 	amount: number; // amount to buy/sell (e.g. 0.01 ETH)
 
-	direction: Direction; 
-  // BUY -> Stop Loss for Short
-  // SELL -> Stop Loss for Long
+	direction: Direction;
+	// BUY -> Stop Loss for Short
+	// SELL -> Stop Loss for Long
 
 	tp_trigger_price?: number;
 	tp_order_price?: number;
@@ -37,8 +37,8 @@ type Params = {
 
 export const placeStopLossTakeProfit = ({ ...params }: Params) =>
 	request({
-		method: 'POST',
-		path: '/linear-swap-api/v1/swap_tpsl_order',
+		method: "POST",
+		path: "/linear-swap-api/v1/swap_tpsl_order",
 		baseUrl: config.FUTURES_BASE_URL,
 		body: params,
 	}) as Promise<AxiosResponse<Response>>;

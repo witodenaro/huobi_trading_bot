@@ -1,10 +1,19 @@
-import { placeOrder } from '../api/linear-swap-api/v1/swap_order';
-import { placeStopLossTakeProfit } from '../api/linear-swap-api/v1/swap_tpsl_order';
-import { ContractCode, Direction, OrderOffset, OrderPriceType } from '../types/order';
-import { Position, PositionState } from './Position';
+import { placeOrder } from "../api/linear-swap-api/v1/swap_order";
+import { placeStopLossTakeProfit } from "../api/linear-swap-api/v1/swap_tpsl_order";
+import {
+	ContractCode,
+	Direction,
+	OrderOffset,
+	OrderPriceType,
+} from "../types/order";
+import { Position, PositionState } from "./Position";
 
 export class Long extends Position {
-	static fromExisting(contractCode: ContractCode, price: number, amount: number): Long {
+	static fromExisting(
+		contractCode: ContractCode,
+		price: number,
+		amount: number
+	): Long {
 		return new this(contractCode, price, amount, 0, PositionState.OPEN);
 	}
 
@@ -39,7 +48,9 @@ export class Long extends Position {
 		const { sl_order } = response.data.data;
 
 		if (!sl_order) {
-			throw new Error("Stop loss order wasn't generated after placing stop loss");
+			throw new Error(
+				"Stop loss order wasn't generated after placing stop loss"
+			);
 		}
 
 		this.stopLossOrder = sl_order;

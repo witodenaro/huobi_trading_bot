@@ -12,7 +12,8 @@ interface Response {
 	};
 }
 
-export const getAccountValuation = () => request({
-	method: 'GET',
-	path: '/v2/account/valuation',
-}) as Promise<AxiosResponse<Response>>;
+export const getAccountValuation = () =>
+	request({
+		method: "GET",
+		path: "/v2/account/valuation",
+	}) as Promise<AxiosResponse<Response>>;

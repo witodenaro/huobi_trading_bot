@@ -1,14 +1,14 @@
-import { Feedee, PriceFeedee } from '../../feedees/types';
+import { Feedee, PriceFeedee } from "../../feedees/types";
 
 export type PingMessage = {
 	ping: number;
 };
 
 export type ErrorMessage = {
-	status: 'error';
+	status: "error";
 	ts: number;
-	'err-code': string;
-	'err-msg': string;
+	"err-code": string;
+	"err-msg": string;
 };
 
 export type PriceMessage = {
@@ -28,16 +28,20 @@ export type PriceMessage = {
 
 export type SubMessage = {
 	id: null;
-	status: 'ok';
+	status: "ok";
 	subbed: string;
 	ts: number;
 };
 
-export type SocketMessageData = PingMessage | ErrorMessage | PriceMessage | SubMessage;
+export type SocketMessageData =
+	| PingMessage
+	| ErrorMessage
+	| PriceMessage
+	| SubMessage;
 
 export type FeedeeHash = Record<string, PriceFeedee>;
 
 export type SocketMessage = {
-	type: 'binary';
+	type: "binary";
 	binaryData: Buffer;
 };

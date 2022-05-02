@@ -11,7 +11,7 @@ abstract class BaseOrder implements OrderFeedee {
 
 	init(connection: connection) {
 		const requestPayload = {
-			op: 'sub',
+			op: "sub",
 			cid: this.id,
 			topic: this.channel,
 		};
@@ -21,8 +21,13 @@ abstract class BaseOrder implements OrderFeedee {
 
 	handleMessage(message: OrderNotificationMessage) {
 		const { order_id_str, status, client_order_id, order_source } = message;
-		
-		this._notifyListeners({ order_id_str, status, client_order_id, order_source });
+
+		this._notifyListeners({
+			order_id_str,
+			status,
+			client_order_id,
+			order_source,
+		});
 	}
 
 	addListener(listener: OrderListener) {

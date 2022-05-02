@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { v4 as uuid } from "uuid";
 import BaseOrder from "./base";
 import { OrderFeedee } from "../types";
 import { ContractCode } from "../../types/order";

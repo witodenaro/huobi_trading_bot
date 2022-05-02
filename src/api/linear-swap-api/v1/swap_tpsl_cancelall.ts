@@ -5,10 +5,10 @@ import { ContractCode } from "../../../types/order";
 import { ResponseStatus } from "../../../types/requests";
 
 type Error = {
-  order_id: string;
-  err_code: number;
-  err_msg: string;
-}
+	order_id: string;
+	err_code: number;
+	err_msg: string;
+};
 
 interface Response {
 	status: ResponseStatus;
@@ -25,8 +25,8 @@ type Params = {
 
 export const cancelAllStopLossTakeProfit = ({ ...params }: Params) =>
 	request({
-		method: 'POST',
-		path: '/linear-swap-api/v1/swap_tpsl_cancelall',
+		method: "POST",
+		path: "/linear-swap-api/v1/swap_tpsl_cancelall",
 		baseUrl: config.FUTURES_BASE_URL,
 		body: params,
 	}) as Promise<AxiosResponse<Response>>;

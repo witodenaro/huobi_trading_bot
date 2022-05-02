@@ -1,7 +1,7 @@
-import { AxiosResponse } from 'axios';
-import { config } from '../../../config';
-import { request } from '../../../connection/request';
-import { ContractCode } from '../../../types/order';
+import { AxiosResponse } from "axios";
+import { config } from "../../../config";
+import { request } from "../../../connection/request";
+import { ContractCode } from "../../../types/order";
 
 type CancelError = {
 	order_id: string;
@@ -24,8 +24,8 @@ type Params = {
 
 export const cancelOrder = ({ order_id, contract_code }: Params) =>
 	request({
-		method: 'POST',
-		path: '/linear-swap-api/v1/swap_cancel',
+		method: "POST",
+		path: "/linear-swap-api/v1/swap_cancel",
 		baseUrl: config.FUTURES_BASE_URL,
 		body: {
 			order_id,

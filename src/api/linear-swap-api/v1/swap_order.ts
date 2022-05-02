@@ -1,12 +1,18 @@
 import { AxiosResponse } from "axios";
 import { config } from "../../../config";
 import { request } from "../../../connection/request";
-import { ContractCode, NumberBool, Direction, OrderOffset, OrderPriceType } from "../../../types/order";
+import {
+	ContractCode,
+	NumberBool,
+	Direction,
+	OrderOffset,
+	OrderPriceType,
+} from "../../../types/order";
 
 interface Response {
 	code: number;
 	data: {
-		order_id: number,
+		order_id: number;
 		order_id_str: string;
 	};
 }
@@ -32,8 +38,8 @@ type Params = {
 
 export const placeOrder = ({ ...params }: Params) =>
 	request({
-		method: 'POST',
-		path: '/linear-swap-api/v1/swap_order',
+		method: "POST",
+		path: "/linear-swap-api/v1/swap_order",
 		baseUrl: config.FUTURES_BASE_URL,
 		body: params,
 	}) as Promise<AxiosResponse<Response>>;

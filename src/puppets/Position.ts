@@ -1,15 +1,15 @@
-import { cancelStopLossTakeProfit } from '../api/linear-swap-api/v1/swap_tpsl_cancel';
-import { Order } from '../api/linear-swap-api/v1/swap_tpsl_order';
-import { OrderNotification } from '../feedees/types';
-import { ContractCode, OrderSource, OrderStatus } from '../types/order';
-import { log } from '../utils/logger';
+import { cancelStopLossTakeProfit } from "../api/linear-swap-api/v1/swap_tpsl_cancel";
+import { Order } from "../api/linear-swap-api/v1/swap_tpsl_order";
+import { OrderNotification } from "../feedees/types";
+import { ContractCode, OrderSource, OrderStatus } from "../types/order";
+import { log } from "../utils/logger";
 
 export enum PositionState {
-	INITIALIZED = 'initialized',
-	PENDING = 'pending',
-	OPEN = 'open',
-	CLOSING = 'closing',
-	CLOSED = 'closed',
+	INITIALIZED = "initialized",
+	PENDING = "pending",
+	OPEN = "open",
+	CLOSING = "closing",
+	CLOSED = "closed",
 }
 
 export abstract class Position {
@@ -29,7 +29,9 @@ export abstract class Position {
 			throw new Error("Can't open position if it's state is not 'Initialized'");
 		}
 
-		log(`${this.contractCode} position order placed at ${this.entryPrice} for ${this.amount}`);
+		log(
+			`${this.contractCode} position order placed at ${this.entryPrice} for ${this.amount}`
+		);
 		await this._placeOrder();
 	}
 
@@ -42,12 +44,15 @@ export abstract class Position {
 	}
 
 	async checkOrderUpdate(orderNotification: OrderNotification) {
-		const { order_id_str, status, client_order_id, order_source } = orderNotification;
+		const { order_id_str, status, client_order_id, order_source } =
+			orderNotification;
 
 		// Action with the position itself
 		if (order_id_str === this.orderId) {
 			if (status === OrderStatus.FULLY_MATCHED) {
-				log(`${this.contractCode} position is open at ${this.entryPrice} for ${this.amount}`);
+				log(
+					`${this.contractCode} position is open at ${this.entryPrice} for ${this.amount}`
+				);
 				this.state = PositionState.OPEN;
 
 				await this.placeStopLoss(this.stopLossPrice);
@@ -55,10 +60,15 @@ export abstract class Position {
 		}
 
 		// Action with stop loss order
-		if (client_order_id === this.stopLossOrder?.order_id && order_source === OrderSource.TPSL) {
+		if (
+			client_order_id === this.stopLossOrder?.order_id &&
+			order_source === OrderSource.TPSL
+		) {
 			switch (status) {
 				case OrderStatus.FULLY_MATCHED:
-					log(`${this.contractCode} position with entry price of ${this.entryPrice} and amount of ${this.amount} is closed.`);
+					log(
+						`${this.contractCode} position with entry price of ${this.entryPrice} and amount of ${this.amount} is closed.`
+					);
 					this.state = PositionState.CLOSED;
 					break;
 				case OrderStatus.SUBMITTED:
@@ -75,7 +85,9 @@ export abstract class Position {
 
 	async _cancelStopLoss(): Promise<void> {
 		if (!this.stopLossOrder) {
-			throw new Error(`${this.contractCode} position tried to cancel stop loss order without ID`);
+			throw new Error(
+				`${this.contractCode} position tried to cancel stop loss order without ID`
+			);
 		}
 
 		const response = await cancelStopLossTakeProfit({
@@ -86,7 +98,7 @@ export abstract class Position {
 		const { errors } = response.data.data;
 
 		if (errors.length !== 0) {
-			throw new Error(errors.map((error) => error.err_msg).join(', '));
+			throw new Error(errors.map((error) => error.err_msg).join(", "));
 		}
 
 		this.stopLossOrder = null;

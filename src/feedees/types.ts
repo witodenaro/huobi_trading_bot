@@ -1,7 +1,7 @@
-import { connection } from 'websocket';
-import { PriceMessage } from '../connection/spot/types';
-import { OrderNotificationMessage } from '../connection/usdt-m/types';
-import { ContractCode, OrderSource, OrderStatus } from '../types/order';
+import { connection } from "websocket";
+import { PriceMessage } from "../connection/spot/types";
+import { OrderNotificationMessage } from "../connection/usdt-m/types";
+import { ContractCode, OrderSource, OrderStatus } from "../types/order";
 
 export type OrderNotification = {
 	order_id_str: string;
@@ -26,7 +26,8 @@ export interface PriceFeedee extends Feedee<PriceMessage, number> {
 	getLatestPrice: () => number | null;
 }
 
-export interface OrderFeedee extends Feedee<OrderNotificationMessage, OrderNotification> {
+export interface OrderFeedee
+	extends Feedee<OrderNotificationMessage, OrderNotification> {
 	contractCode: ContractCode;
 	id: string;
 }
