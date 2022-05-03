@@ -14,5 +14,6 @@ HUOBI_SECRET_KEY=$(aws ssm get-parameters --region eu-central-1 --names HUOBI_SE
 cd /home/ec2-user/huobi_bot
 
 cp .env.example .env
+echo "" >> .env
 echo "ACCESS_KEY=$HUOBI_ACCESS_KEY" >> .env
 echo "SECRET_KEY=$HUOBI_SECRET_KEY" >> .env
