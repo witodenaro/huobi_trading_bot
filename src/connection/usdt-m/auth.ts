@@ -9,61 +9,61 @@ import { AuthMessage, Message } from "./types";
 const WEBSOCKET_AUTH_TIMEOUT = 10000;
 
 export const authenticate = (connection: connection) => {
-	const timestamp = getTimestamp();
+  const timestamp = getTimestamp();
 
-	const params = {
-		AccessKeyId: config.ACCESS_KEY,
-		SignatureMethod: config.SIGNATURE_METHOD,
-		SignatureVersion: config.USDTM_SOCKET_SIGNATURE_VERSION,
-		Timestamp: timestamp,
-	};
+  const params = {
+    AccessKeyId: config.ACCESS_KEY,
+    SignatureMethod: config.SIGNATURE_METHOD,
+    SignatureVersion: config.USDTM_SOCKET_SIGNATURE_VERSION,
+    Timestamp: timestamp,
+  };
 
-	const signature = createSignature({
-		method: "GET",
-		baseUrl: config.FUTURES_BASE_URL,
-		path: "/linear-swap-notification",
-		params,
-	});
+  const signature = createSignature({
+    method: "GET",
+    baseUrl: config.FUTURES_BASE_URL,
+    path: "/linear-swap-notification",
+    params,
+  });
 
-	const authPayload = {
-		op: "auth",
-		type: "api",
-		...params,
-		Signature: signature,
-	};
+  const authPayload = {
+    op: "auth",
+    type: "api",
+    ...params,
+    Signature: signature,
+  };
 
-	return new Promise((resolve, reject) => {
-		const rejectAndRemoveListener = (...msg: any[]) => {
-			connection.removeListener("message", messageListener);
-			reject(...msg);
-		};
+  return new Promise((resolve, reject) => {
+    const rejectAndRemoveListener = (...msg: any[]) => {
+      connection.removeListener("message", messageListener);
+      reject(...msg);
+    };
 
-		const resolveAndRemoveListener = (msg: any) => {
-			connection.removeListener("message", messageListener);
-			resolve(msg);
-		};
+    const resolveAndRemoveListener = (msg: any) => {
+      connection.removeListener("message", messageListener);
+      resolve(msg);
+    };
 
-		const messageListener = (data: WSMessage) => {
-			const parsedMessage = parseWebsocketMessage(data) as Message;
+    const messageListener = (data: WSMessage) => {
+      const parsedMessage = parseWebsocketMessage(data) as Message;
 
-			if (parsedMessage.op === "auth") {
-				const msg = parsedMessage as AuthMessage;
+      if (parsedMessage.op === "auth") {
+        const msg = parsedMessage as AuthMessage;
 
-				if (msg["err-code"] === 0) {
-					resolveAndRemoveListener(null);
-				} else {
-					log("Websocket USDTM authentication failure");
-					rejectAndRemoveListener();
-				}
-			}
-		};
+        if (msg["err-code"] === 0) {
+          resolveAndRemoveListener(null);
+        } else {
+          log("Websocket USDTM authentication failure");
+          rejectAndRemoveListener();
+        }
+      }
+    };
 
-		connection.on("message", messageListener);
+    connection.on("message", messageListener);
 
-		connection.send(JSON.stringify(authPayload));
+    connection.send(JSON.stringify(authPayload));
 
-		setTimeout(() => {
-			rejectAndRemoveListener("Websocket USDTM authentication timed out");
-		}, WEBSOCKET_AUTH_TIMEOUT);
-	});
+    setTimeout(() => {
+      rejectAndRemoveListener("Websocket USDTM authentication timed out");
+    }, WEBSOCKET_AUTH_TIMEOUT);
+  });
 };
