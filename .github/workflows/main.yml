@@ -4,7 +4,7 @@ on:
     branches: [ master ]
 
 jobs:
-  cd:
+  deployment:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
@@ -19,7 +19,7 @@ jobs:
         id: deploy
         run: |
           aws deploy create-deployment \
-            --application-name huobi_bot \
+            --application-name huobi-bot \
             --deployment-group-name deployment_group \
             --deployment-config-name CodeDeployDefault.OneAtTime \
             --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
