@@ -15,5 +15,5 @@ cd /home/ec2-user/huobi_bot
 
 cp .env.example .env
 echo "\n" >> .env
-echo "ACCESS_KEY=$(HUOBI_ACCESS_KEY)" >> .env
-echo "SECRET_KEY=$(HUOBI_SECRET_KEY)" >> .env
+echo "ACCESS_KEY=$HUOBI_ACCESS_KEY" >> .env
+echo "SECRET_KEY=$HUOBI_SECRET_KEY" >> .env
