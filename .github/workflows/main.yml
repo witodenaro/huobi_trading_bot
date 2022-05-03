@@ -1,25 +1,25 @@
 name: CI/CD Pipeline
 on:
-	push:
-		branches: [ master ]
+  push:
+    branches: [ master ]
 
 jobs:
-	cd:
-		runs-on: ubuntu-latest
-		if: github.ref === 'refs/heads/master'
-		steps:
-			- name: Configure AWS credentials
-				uses: aws-actions/configure-aws-credentials@v1
-				with:
-					aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-					aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-					aws-region: ${{ secrets.AWS_REGION }}
-			
-			- name: Create AWS CodeDeploy deployment
-				id: deploy
-				run: |
-					aws deploy create-deployment \
-						--aplication-name huobi_bot \
-						--deployment-group-name deployment_group \
-						--deployment-config-name CodeDeployDefault.OneAtTime \
-						--github-location repository=${{ github.repository }},commitId=${{ github.sha }}
+  cd:
+    runs-on: ubuntu-latest
+    if: github.ref === 'refs/heads/master'
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Create AWS CodeDeploy deployment
+        id: deploy
+        run: |
+          aws deploy create-deployment \
+            --aplication-name huobi_bot \
+            --deployment-group-name deployment_group \
+            --deployment-config-name CodeDeployDefault.OneAtTime \
+            --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
