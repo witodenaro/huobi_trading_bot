@@ -1,6 +1,7 @@
-import { Direction } from 'readline';
-import { OrderFeedee } from '../../feedees/types';
+import { Direction } from "readline";
+import { OrderFeedee } from "../../feedees/types";
 import {
+	AssetSymbol,
 	ContractCode,
 	MarginAccount,
 	MarginMode,
@@ -12,32 +13,32 @@ import {
 	OrderStatus,
 	OrderType,
 	Role,
-} from '../../types/order';
+} from "../../types/order";
 
 export type PingMessage = {
-	op: 'ping';
+	op: "ping";
 	ts: string;
 };
 
 type ErrorAuthMessage = {
-	op: 'auth';
-	type: 'api';
+	op: "auth";
+	type: "api";
 	ts: number;
-	'err-code': number;
-	'err-msg': string;
+	"err-code": number;
+	"err-msg": string;
 };
 
 type SuccessAuthMessage = {
 	ts: number;
-	op: 'auth';
-	type: 'api';
-	'err-code': 0;
-	data: { 'user-id': string };
+	op: "auth";
+	type: "api";
+	"err-code": 0;
+	data: { "user-id": string };
 };
 
 type Trade = {
 	trade_fee: number;
-	fee_asset: Symbol;
+	fee_asset: AssetSymbol;
 	real_profit: number;
 	profit: number;
 	trade_id: number;
@@ -50,10 +51,10 @@ type Trade = {
 };
 
 export type OrderNotificationMessage = {
-	op: 'notify';
+	op: "notify";
 	topic: string;
 	ts: number;
-	symbol: Symbol;
+	symbol: AssetSymbol;
 	contract_code: ContractCode;
 	volume: number;
 	price: number;
@@ -76,32 +77,36 @@ export type OrderNotificationMessage = {
 	profit: number;
 	trade: Trade[];
 	canceled_at: number;
-	fee_asset: Symbol;
-	margin_asset: Symbol;
+	fee_asset: AssetSymbol;
+	margin_asset: AssetSymbol;
 	uid: string;
 	liquidation_type: OrderLiquidationType;
 	margin_mode: MarginMode;
 	margin_account: MarginAccount;
 	is_tpsl: NumberBool;
 	real_profit: number;
-	trade_partition: Symbol;
+	trade_partition: AssetSymbol;
 	reduce_only: NumberBool;
 };
 
 export type SubMessage = {
-	op: 'sub',
-  cid: string,
-  topic: string,
-  ts: number,
-  'err-code': 0
-}
+	op: "sub";
+	cid: string;
+	topic: string;
+	ts: number;
+	"err-code": 0;
+};
 
 export type AuthMessage = SuccessAuthMessage | ErrorAuthMessage;
 
-export type Message = PingMessage | AuthMessage | OrderNotificationMessage | SubMessage;
+export type Message =
+	| PingMessage
+	| AuthMessage
+	| OrderNotificationMessage
+	| SubMessage;
 
 export type SocketMessage = {
-	type: 'binary';
+	type: "binary";
 	binaryData: Buffer;
 };
 

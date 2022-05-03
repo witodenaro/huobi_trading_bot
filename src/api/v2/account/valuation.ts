@@ -8,7 +8,7 @@ interface Response {
 		todayProfitRate: null;
 		totalBalance: string;
 		todayProfit: null;
-		profitAccountBalanceList: Object[];
+		profitAccountBalanceList: object[];
 	};
 }
 

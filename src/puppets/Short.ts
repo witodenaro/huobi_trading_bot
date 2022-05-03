@@ -12,9 +12,13 @@ export class Short extends Position {
 	static fromExisting(
 		contractCode: ContractCode,
 		price: number,
-		amount: number
+		amount: number,
+		state: PositionState,
+		orderId?: string
 	): Short {
-		return new this(contractCode, price, amount, 0, PositionState.OPEN);
+		const short = new this(contractCode, price, amount, 0, state);
+		short.orderId = orderId || null;
+		return short;
 	}
 
 	async _placeOrder(): Promise<void> {

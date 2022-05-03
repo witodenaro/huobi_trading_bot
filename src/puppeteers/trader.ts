@@ -25,17 +25,16 @@ import { Short } from "../puppets/Short";
 
 import { log } from "../utils/logger";
 import { ContractCode } from "../types/order";
-import { getAssetsAndPositions } from "../api/linear-swap-api/v1/swap_account_position_info";
-import { getHasEnoughBalance, searchForInitInfo } from "../utils/initializer";
+import { AccountInfo, getAccountPositionsOrders, getHasEnoughBalance } from "../utils/initializer";
 import { cancelAllStopLossTakeProfit } from "../api/linear-swap-api/v1/swap_tpsl_cancelall";
+import { PositionState } from "../puppets/Position";
+import { getPrecision } from "../utils/number";
 
 export class Trader {
 	private long: Long | null = null;
-
 	private short: Short | null = null;
 
 	private _priceChangeHandler: PriceListener | null = null;
-
 	private _orderUpdateHandler: OrderListener | null = null;
 
 	constructor(
@@ -48,74 +47,101 @@ export class Trader {
 	}
 
 	async init() {
-		const res = await getAssetsAndPositions({
-			contract_code: this._contractCode,
-		});
-
-		const initialInfo = searchForInitInfo(res.data.data);
-
-		if (!initialInfo) {
-			throw new Error(
-				`${this._contractCode} trader contract account is funds-empty.`
-			);
-		}
-
-		const { margin_available, short, long, hasOpenPositions, adjust_factor } =
-			initialInfo;
+		const accountPositionsOrders = await getAccountPositionsOrders(
+			this._contractCode
+		);
 
 		await cancelAllStopLossTakeProfit({ contract_code: this._contractCode });
 
-		const latestPrice = this._priceFeedee.getLatestPrice();
+		const hasEnoughBalance = this.checkHasEnoughBalance(accountPositionsOrders);
+		const {
+			margin_available,
+			short,
+			long,
+			hasOpenPositionsOrAndOrders,
+			adjust_factor,
+		} = accountPositionsOrders;
 
-		if (!latestPrice) {
-			throw new Error(
-				`${this._contractCode} trader was initialized before first price was fetched`
-			);
+		if (short) {
+			await this.syncShort(short.entryPrice, short.amount, short.state, short.orderId);
 		}
 
-		const hasEnoughMargin = getHasEnoughBalance(
-			margin_available,
-			latestPrice,
-			adjust_factor
-		);
+		if (long) {
+			await this.syncLong(long.entryPrice, long.amount, long.state, long.orderId);
+		}
 
-		if (!hasOpenPositions && !hasEnoughMargin) {
+		if (!hasOpenPositionsOrAndOrders && !hasEnoughBalance) {
 			throw new Error(
 				`${this._contractCode} trader can't open new positions due to unsufficient balance`
 			);
 		}
 
-		if (short) {
-			await this.syncShort(short.entryPrice, short.amount);
-		}
-
-		if (long) {
-			await this.syncLong(long.entryPrice, long.amount);
-		}
-
-		if (!hasOpenPositions && hasEnoughMargin) {
-			await this.openPositions(latestPrice, margin_available);
+		if (!hasOpenPositionsOrAndOrders && hasEnoughBalance) {
+			const latestPrice = this.getLatestPrice();
+			await this.openPositions(latestPrice, margin_available, adjust_factor);
 		}
 
 		this._priceFeedee.addListener(this._priceChangeHandler as PriceListener);
 		this._orderFeedee.addListener(this._orderUpdateHandler as OrderListener);
 	}
 
-	async syncShort(price: number, amount: number) {
+	checkHasEnoughBalance({ margin_available, adjust_factor }: AccountInfo) {
+		const latestPrice = this.getLatestPrice();
+
+		return getHasEnoughBalance(margin_available, latestPrice, adjust_factor);
+	}
+
+	getLatestPrice() {
+		const latestPrice = this._priceFeedee.getLatestPrice();
+
+		if (!latestPrice) {
+			throw new Error(
+				`${this._contractCode} trader was initialized before first price is fetched`
+			);
+		}
+
+		return latestPrice;
+	}
+
+	async syncShort(
+		price: number,
+		amount: number,
+		state: PositionState,
+		orderId?: string
+	) {
 		const stopLoss = calculateStopLoss(price, SHORT_STOP_LOSS_DEVIATION);
-		this.short = Short.fromExisting(this._contractCode, price, amount);
+		this.short = Short.fromExisting(
+			this._contractCode,
+			price,
+			amount,
+			state,
+			orderId
+		);
 		await this.short.placeStopLoss(stopLoss);
+		log(`${this._contractCode} trader syncs with existing SHORT position.`);
 		log(
-			`${this._contractCode} trader syncs existing short position opened at ${price} of ${amount} amount`
+			`${this._contractCode} POS: Entry price - ${price}, amount - ${amount}, state - ${state}`
 		);
 	}
 
-	async syncLong(price: number, amount: number) {
+	async syncLong(
+		price: number,
+		amount: number,
+		state: PositionState,
+		orderId?: string
+	) {
 		const stopLoss = calculateStopLoss(price, LONG_STOP_LOSS_DEVIATION);
-		this.long = Long.fromExisting(this._contractCode, price, amount);
+		this.long = Long.fromExisting(
+			this._contractCode,
+			price,
+			amount,
+			state,
+			orderId
+		);
 		await this.long.placeStopLoss(stopLoss);
+		log(`${this._contractCode} trader syncs with existing LONG position.`);
 		log(
-			`${this._contractCode} trader syncs existing long position opened at ${price} of ${amount} amount`
+			`${this._contractCode} POS: Entry price - ${price}, amount - ${amount}, state - ${state}`
 		);
 	}
 
@@ -131,8 +157,12 @@ export class Trader {
 		await this.long.open();
 	}
 
-	async openPositions(price: number, marginAvailable: number) {
-		const amount = calculateEqualAmount(price, marginAvailable);
+	async openPositions(price: number, marginAvailable: number, adjust_factor: number) {
+		const amount = calculateEqualAmount(
+			price,
+			marginAvailable,
+			getPrecision(adjust_factor)
+		);
 
 		const openShortPromise = this.openShort(price, amount);
 		const openLongPromise = this.openLong(price, amount);
@@ -143,13 +173,45 @@ export class Trader {
 		await Promise.all([openLongPromise, openShortPromise]);
 	}
 
+	async handleAllPositionsAreClosed() {
+		const accountPositionsOrders = await getAccountPositionsOrders(this._contractCode);
+
+		const hasEnoughBalance = this.checkHasEnoughBalance(accountPositionsOrders);
+		const { margin_available, hasOpenPositionsOrAndOrders, adjust_factor } = accountPositionsOrders;
+
+		if (hasOpenPositionsOrAndOrders) {
+			throw new Error(
+				`${this._contractCode} tried to handle all positions closed having a position or orders open`
+			);
+		}
+
+		if (!hasEnoughBalance) {
+			throw new Error(
+				`${this._contractCode} trader can't open new positions due to unsufficient balance`
+			);
+		}
+
+		const latestPrice = this.getLatestPrice();
+		await this.openPositions(latestPrice, margin_available, adjust_factor);
+	}
+
 	async handlePriceChange(latestPrice: number) {
 		await this.updateStopLossesBasedOnPrice(latestPrice);
 	}
 
-	handleOrderUpdate(order: OrderNotification) {
-		this.long?.checkOrderUpdate(order);
-		this.short?.checkOrderUpdate(order);
+	async handleOrderUpdate(order: OrderNotification) {
+		log(`${this._contractCode} order is updated`, order);
+		const longCheckPromise = this.long?.checkOrderUpdate(order);
+		const shortCheckPromise = this.short?.checkOrderUpdate(order);
+
+		await Promise.all([longCheckPromise, shortCheckPromise]);
+
+		const positionsNotExist = !(this.short || this.long);
+		const positionsAreClosed = this.short?.isClosed() && this.long?.isClosed();
+
+		if (positionsAreClosed || positionsNotExist) {
+			await this.handleAllPositionsAreClosed();
+		}
 	}
 
 	private async updateStopLossesBasedOnPrice(price: number) {

@@ -14,6 +14,10 @@ export const calculatePercentageDifference = (entryPrice: number, latestPrice: n
 	return (plainDifference / entryPrice) * 100;
 };
 
-export const calculateEqualAmount = (latestPrice: number, marginAvailable: number) => {
-	return (marginAvailable / latestPrice) / 2;
+export const calculateEqualAmount = (
+	latestPrice: number,
+	marginAvailable: number,
+	precision: number
+) => {
+	return toFixed(marginAvailable / latestPrice / 2, precision);
 };

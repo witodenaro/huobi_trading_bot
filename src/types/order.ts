@@ -126,7 +126,7 @@ export type OpenOrder = {
 };
 
 export interface Account {
-	positions: Position[];
+	positions: AccountPosition[];
 	symbol: AssetSymbol;
 	margin_balance: number;
 	margin_position: number;
@@ -148,7 +148,7 @@ export interface Account {
 	position_mode: PositionMode;
 }
 
-interface Position {
+export interface AccountPosition {
 	symbol: AssetSymbol;
 	contract_code: ContractCode;
 	volume: number;

@@ -20,7 +20,8 @@
     "websocket": "^1.0.34"
   },
   "scripts": {
-    "start": "ts-node index.ts"
+    "start": "ts-node index.ts",
+		"dummy": "ts-node dummy.ts"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.22.0",
