@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  huobi_bot:
+    build: .
+    container_name: huobi_bot
+    restart: always
