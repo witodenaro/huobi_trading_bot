@@ -8,5 +8,6 @@ COPY yarn.lock ./
 RUN yarn install
 
 COPY . .
+COPY .env ./
 
 CMD [ "yarn", "start" ]
