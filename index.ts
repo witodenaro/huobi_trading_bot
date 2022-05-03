@@ -5,14 +5,14 @@ import { Trader } from "./src/puppeteers/trader";
 import { ContractCode } from "./src/types/order";
 
 const init = async () => {
-	await initSocketConnection();
+  await initSocketConnection();
 
-	const ethTrader = new Trader(
-		ContractCode.ETH_USDT,
-		EthPriceFeedee,
-		EthOrderFeedee
-	);
-	await ethTrader.init();
+  const ethTrader = new Trader(
+    ContractCode.ETH_USDT,
+    EthPriceFeedee,
+    EthOrderFeedee
+  );
+  await ethTrader.init();
 };
 
 init();

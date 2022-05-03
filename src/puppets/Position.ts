@@ -5,114 +5,114 @@ import { ContractCode, OrderSource, OrderStatus } from "../types/order";
 import { log } from "../utils/logger";
 
 export enum PositionState {
-	INITIALIZED = "initialized",
-	PENDING = "pending",
-	OPEN = "open",
-	CLOSING = "closing",
-	CLOSED = "closed",
+  INITIALIZED = "initialized",
+  PENDING = "pending",
+  OPEN = "open",
+  CLOSING = "closing",
+  CLOSED = "closed",
 }
 
 export abstract class Position {
-	orderId: string | null = null;
-	stopLossOrder: Order | null = null;
+  orderId: string | null = null;
+  stopLossOrder: Order | null = null;
 
-	constructor(
-		public contractCode: ContractCode,
-		public entryPrice: number,
-		public amount: number,
-		public stopLossPrice: number,
-		public state = PositionState.INITIALIZED
-	) {}
+  constructor(
+    public contractCode: ContractCode,
+    public entryPrice: number,
+    public amount: number,
+    public stopLossPrice: number,
+    public state = PositionState.INITIALIZED
+  ) {}
 
-	async open() {
-		if (!this.isInitialized()) {
-			throw new Error("Can't open position if it's state is not 'Initialized'");
-		}
+  async open() {
+    if (!this.isInitialized()) {
+      throw new Error("Can't open position if it's state is not 'Initialized'");
+    }
 
-		log(
-			`${this.contractCode} position order placed at ${this.entryPrice} for ${this.amount}`
-		);
-		await this._placeOrder();
-	}
+    log(
+      `${this.contractCode} position order placed at ${this.entryPrice} for ${this.amount}`
+    );
+    await this._placeOrder();
+  }
 
-	async updateStopLoss(stopLossPrice: number) {
-		if (this.stopLossOrder) {
-			await this._cancelStopLoss();
-		}
+  async updateStopLoss(stopLossPrice: number) {
+    if (this.stopLossOrder) {
+      await this._cancelStopLoss();
+    }
 
-		await this.placeStopLoss(stopLossPrice);
-	}
+    await this.placeStopLoss(stopLossPrice);
+  }
 
-	async checkOrderUpdate(orderNotification: OrderNotification) {
-		const { order_id_str, status, client_order_id, order_source } =
-			orderNotification;
+  async checkOrderUpdate(orderNotification: OrderNotification) {
+    const { order_id_str, status, client_order_id, order_source } =
+      orderNotification;
 
-		// Action with the position itself
-		if (order_id_str === this.orderId) {
-			if (status === OrderStatus.FULLY_MATCHED) {
-				log(
-					`${this.contractCode} position is open at ${this.entryPrice} for ${this.amount}`
-				);
-				this.state = PositionState.OPEN;
+    // Action with the position itself
+    if (order_id_str === this.orderId) {
+      if (status === OrderStatus.FULLY_MATCHED) {
+        log(
+          `${this.contractCode} position is open at ${this.entryPrice} for ${this.amount}`
+        );
+        this.state = PositionState.OPEN;
 
-				await this.placeStopLoss(this.stopLossPrice);
-			}
-		}
+        await this.placeStopLoss(this.stopLossPrice);
+      }
+    }
 
-		// Action with stop loss order
-		if (
-			client_order_id === this.stopLossOrder?.order_id &&
-			order_source === OrderSource.TPSL
-		) {
-			switch (status) {
-				case OrderStatus.FULLY_MATCHED:
-					log(
-						`${this.contractCode} position with entry price of ${this.entryPrice} and amount of ${this.amount} is closed.`
-					);
-					this.state = PositionState.CLOSED;
-					break;
-				case OrderStatus.SUBMITTED:
-					this.state = PositionState.CLOSING;
-					break;
-				default:
-					break;
-			}
-		}
-	}
+    // Action with stop loss order
+    if (
+      client_order_id === this.stopLossOrder?.order_id &&
+      order_source === OrderSource.TPSL
+    ) {
+      switch (status) {
+        case OrderStatus.FULLY_MATCHED:
+          log(
+            `${this.contractCode} position with entry price of ${this.entryPrice} and amount of ${this.amount} is closed.`
+          );
+          this.state = PositionState.CLOSED;
+          break;
+        case OrderStatus.SUBMITTED:
+          this.state = PositionState.CLOSING;
+          break;
+        default:
+          break;
+      }
+    }
+  }
 
-	abstract _placeOrder(): Promise<void>;
-	abstract placeStopLoss(price: number): Promise<void>;
+  abstract _placeOrder(): Promise<void>;
+  abstract placeStopLoss(price: number): Promise<void>;
 
-	async _cancelStopLoss(): Promise<void> {
-		if (!this.stopLossOrder) {
-			throw new Error(
-				`${this.contractCode} position tried to cancel stop loss order without ID`
-			);
-		}
+  async _cancelStopLoss(): Promise<void> {
+    if (!this.stopLossOrder) {
+      throw new Error(
+        `${this.contractCode} position tried to cancel stop loss order without ID`
+      );
+    }
 
-		const response = await cancelStopLossTakeProfit({
-			contract_code: this.contractCode,
-			order_id: this.stopLossOrder.order_id_str,
-		});
+    const response = await cancelStopLossTakeProfit({
+      contract_code: this.contractCode,
+      order_id: this.stopLossOrder.order_id_str,
+    });
 
-		const { errors } = response.data.data;
+    const { errors } = response.data.data;
 
-		if (errors.length !== 0) {
-			throw new Error(errors.map((error) => error.err_msg).join(", "));
-		}
+    if (errors.length !== 0) {
+      throw new Error(errors.map((error) => error.err_msg).join(", "));
+    }
 
-		this.stopLossOrder = null;
-	}
+    this.stopLossOrder = null;
+  }
 
-	isInitialized() {
-		return this.state === PositionState.INITIALIZED;
-	}
+  isInitialized() {
+    return this.state === PositionState.INITIALIZED;
+  }
 
-	isOpen() {
-		return this.state === PositionState.OPEN;
-	}
+  isOpen() {
+    return this.state === PositionState.OPEN;
+  }
 
-	isClosed() {
-		return this.state === PositionState.CLOSED;
-	}
+  isClosed() {
+    return this.state === PositionState.CLOSED;
+  }
 }
