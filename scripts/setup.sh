@@ -7,3 +7,9 @@ sudo usermod -a -G docker ec2-user
 sudo chmod 666 /var/run/docker.sock
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 sudo service docker start
+
+HUOBI_ACCESS_KEY=$(aws ssm get-parameters --region eu-central-1 --names HUOBI_ACCESS_KEY --with-decryption --query Parameters[0].Value)
+HUOBI_SECRET_KEY=$(aws ssm get-parameters --region eu-central-1 --names HUOBI_SECRET_KEY --with-decryption --query Parameters[0].Value)
+
+echo $HUOBI_ACCESS_KEY > .env
+echo $HUOBI_SECRET_KEY > .env
