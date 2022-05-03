@@ -21,5 +21,5 @@ jobs:
           aws deploy create-deployment \
             --application-name huobi-bot \
             --deployment-group-name deployment_group \
-            --deployment-config-name CodeDeployDefault.OneAtTime \
+            --deployment-config-name CodeDeployDefault.OneAtATime \
             --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
