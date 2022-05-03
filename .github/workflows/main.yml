@@ -19,7 +19,7 @@ jobs:
         id: deploy
         run: |
           aws deploy create-deployment \
-            --aplication-name huobi_bot \
+            --application-name huobi_bot \
             --deployment-group-name deployment_group \
             --deployment-config-name CodeDeployDefault.OneAtTime \
             --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
