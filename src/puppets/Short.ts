@@ -58,5 +58,6 @@ export class Short extends Position {
     }
 
     this.stopLossOrder = sl_order;
+    this.stopLossPrice = price;
   }
 }

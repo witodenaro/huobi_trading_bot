@@ -259,6 +259,11 @@ export class Trader {
         // e.g. Price went up 5% -> set stop loss at -2.5% of the current price
         case currentPriceDeviation > INTERMEDIATE_STOP_LOSS_BREAKPOINT:
           if (this.long.stopLossPrice < intermediateStopLoss) {
+            log(`${this._contractCode} long profit is > ${INTERMEDIATE_STOP_LOSS_BREAKPOINT}`);
+            log(
+              `${this._contractCode} long: stop loss is set to 
+              ${INTERMEDIATE_LONG_STOP_LOSS_DEVIATION}% - ${intermediateStopLoss} USDT`
+            );
             await this.long.updateStopLoss(intermediateStopLoss);
           }
           break;
@@ -266,6 +271,11 @@ export class Trader {
         // e.g. Price went up 2% -> set stop loss at -1% of the current price
         case currentPriceDeviation > CONSERVATIVE_STOP_LOSS_BREAKPOINT:
           if (this.long.stopLossPrice < conservativeStopLoss) {
+            log(`${this._contractCode} short profit is > ${CONSERVATIVE_STOP_LOSS_BREAKPOINT}`);
+            log(
+              `${this._contractCode} short: stop loss is set to 
+              ${CONSERVATIVE_LONG_STOP_LOSS_DEVIATION}% - ${conservativeStopLoss} USDT`
+            );
             await this.long.updateStopLoss(conservativeStopLoss);
           }
           break;
@@ -298,6 +308,11 @@ export class Trader {
         // e.g. Price went down 5% -> set stop loss at +2.5% of the current price
         case currentPriceDeviation < -INTERMEDIATE_STOP_LOSS_BREAKPOINT:
           if (this.short.stopLossPrice > intermediateStopLoss) {
+            log(`${this._contractCode} short profit is > ${INTERMEDIATE_STOP_LOSS_BREAKPOINT}`);
+            log(
+              `${this._contractCode} short: stop loss is set to 
+              -${INTERMEDIATE_SHORT_STOP_LOSS_DEVIATION}% - ${intermediateStopLoss} USDT`
+            );
             await this.short.updateStopLoss(intermediateStopLoss);
           }
           break;
@@ -305,6 +320,11 @@ export class Trader {
         // e.g. Price went down 2% -> set stop loss at +1% of the current price
         case currentPriceDeviation < -CONSERVATIVE_STOP_LOSS_BREAKPOINT:
           if (this.short.stopLossPrice > conservativeStopLoss) {
+            log(`${this._contractCode} short profit is > ${CONSERVATIVE_STOP_LOSS_BREAKPOINT}`);
+            log(
+              `${this._contractCode} short: stop loss is set to 
+              -${CONSERVATIVE_SHORT_STOP_LOSS_DEVIATION}% - ${conservativeStopLoss} USDT`
+            );
             await this.short.updateStopLoss(conservativeStopLoss);
           }
           break;
