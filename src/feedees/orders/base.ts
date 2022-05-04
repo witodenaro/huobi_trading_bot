@@ -20,13 +20,15 @@ abstract class BaseOrder implements OrderFeedee {
   }
 
   handleMessage(message: OrderNotificationMessage) {
-    const { order_id_str, status, client_order_id, order_source } = message;
+    const { order_id_str, status, client_order_id, order_source, price } =
+      message;
 
     this._notifyListeners({
       order_id_str,
       status,
       client_order_id,
       order_source,
+      price,
     });
   }
 
