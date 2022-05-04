@@ -8,6 +8,7 @@ export type OrderNotification = {
 	client_order_id: number | null;
 	status: OrderStatus;
 	order_source: OrderSource;
+  price: number;
 };
 
 export type Listener<T> = (value: T) => void;

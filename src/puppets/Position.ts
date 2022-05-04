@@ -37,14 +37,18 @@ export abstract class Position {
 
   async updateStopLoss(stopLossPrice: number) {
     if (this.stopLossOrder) {
-      await this._cancelStopLoss();
+      try {
+        await this._cancelStopLoss();
+      } catch (err) {
+        log(`${this.contractCode} position error:`, err);
+      }
     }
 
     await this.placeStopLoss(stopLossPrice);
   }
 
   async checkOrderUpdate(orderNotification: OrderNotification) {
-    const { order_id_str, status, client_order_id, order_source } =
+    const { order_id_str, status, client_order_id, order_source, price } =
       orderNotification;
 
     // Action with the position itself
@@ -67,7 +71,7 @@ export abstract class Position {
       switch (status) {
         case OrderStatus.FULLY_MATCHED:
           log(
-            `${this.contractCode} position with entry price of ${this.entryPrice} and amount of ${this.amount} is closed.`
+            `${this.contractCode} position with entry price of ${this.entryPrice} and amount of ${this.amount} is closed on ${price}.`
           );
           this.state = PositionState.CLOSED;
           break;

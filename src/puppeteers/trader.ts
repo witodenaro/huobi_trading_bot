@@ -227,10 +227,13 @@ export class Trader {
 
     await Promise.all([longCheckPromise, shortCheckPromise]);
 
-    const positionsNotExist = !(this.short || this.long);
-    const positionsAreClosed = this.short?.isClosed() && this.long?.isClosed();
+    const shortIsClosedOrNotExists = !this.short || this.short.isClosed();
+    const longIsClosedOrNotExists = !this.long || this.long.isClosed();
 
-    if (positionsAreClosed || positionsNotExist) {
+    const positionsAreClosedOrNotExist =
+      shortIsClosedOrNotExists && longIsClosedOrNotExists;
+
+    if (positionsAreClosedOrNotExist) {
       await this.handleAllPositionsAreClosed();
     }
   }
@@ -271,9 +274,9 @@ export class Trader {
         // e.g. Price went up 2% -> set stop loss at -1% of the current price
         case currentPriceDeviation > CONSERVATIVE_STOP_LOSS_BREAKPOINT:
           if (this.long.stopLossPrice < conservativeStopLoss) {
-            log(`${this._contractCode} short profit is > ${CONSERVATIVE_STOP_LOSS_BREAKPOINT}`);
+            log(`${this._contractCode} long profit is > ${CONSERVATIVE_STOP_LOSS_BREAKPOINT}`);
             log(
-              `${this._contractCode} short: stop loss is set to 
+              `${this._contractCode} long: stop loss is set to 
               ${CONSERVATIVE_LONG_STOP_LOSS_DEVIATION}% - ${conservativeStopLoss} USDT`
             );
             await this.long.updateStopLoss(conservativeStopLoss);
