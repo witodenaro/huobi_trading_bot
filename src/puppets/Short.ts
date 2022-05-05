@@ -1,5 +1,8 @@
 import { placeOrder } from "../api/linear-swap-api/v1/swap_order";
-import { placeStopLossTakeProfit } from "../api/linear-swap-api/v1/swap_tpsl_order";
+import {
+  Order,
+  placeStopLossTakeProfit,
+} from "../api/linear-swap-api/v1/swap_tpsl_order";
 import {
   ContractCode,
   Direction,
@@ -51,7 +54,7 @@ export class Short extends Position {
     if (response.data.status === ResponseStatus.OK) {
       const { sl_order } = response.data.data;
 
-      this.stopLossOrder = sl_order;
+      this.setStopLoss(sl_order);
       this.stopLossPrice = price;
     } else {
       throw new Error(response.data.err_msg);

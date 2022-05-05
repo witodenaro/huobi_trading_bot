@@ -51,7 +51,7 @@ export class Long extends Position {
     if (response.data.status === ResponseStatus.OK) {
       const { sl_order } = response.data.data;
 
-      this.stopLossOrder = sl_order;
+      this.setStopLoss(sl_order);
       this.stopLossPrice = price;
     } else {
       throw new Error(response.data.err_msg);

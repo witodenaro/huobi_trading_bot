@@ -106,7 +106,12 @@ export abstract class Position {
       throw new Error(errors.map((error) => error.err_msg).join(", "));
     }
 
-    this.stopLossOrder = null;
+    this.setStopLoss(null);
+  }
+
+  setStopLoss(order: Order | null) {
+    log(`${this.contractCode} sets stop loss to`, order);
+    this.stopLossOrder = order;
   }
 
   isInitialized() {
