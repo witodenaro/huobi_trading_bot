@@ -242,12 +242,8 @@ export class Trader {
     const positionsAreClosedOrNotExist =
       shortIsClosedOrNotExists && longIsClosedOrNotExists;
 
-    log(
-      `${this._contractCode}: Short pos state after update is ${this.long}`
-    );
-    log(
-      `${this._contractCode}: Long pos state after update is ${this.long}`
-    );
+    log(`${this._contractCode}: Short pos state after update is`, this.short);
+    log(`${this._contractCode}: Long pos state after update is`, this.long);
     if (positionsAreClosedOrNotExist) {
       await this.handleAllPositionsAreClosed();
     }
