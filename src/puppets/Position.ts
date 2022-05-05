@@ -2,7 +2,9 @@ import { cancelStopLossTakeProfit } from "../api/linear-swap-api/v1/swap_tpsl_ca
 import { Order } from "../api/linear-swap-api/v1/swap_tpsl_order";
 import { OrderNotification } from "../feedees/types";
 import { ContractCode, OrderSource, OrderStatus } from "../types/order";
+import { calculatePercentageDifference } from "../utils/calculator";
 import { log } from "../utils/logger";
+import { toFixed } from "../utils/number";
 
 export enum PositionState {
   INITIALIZED = "initialized",
@@ -55,9 +57,11 @@ export abstract class Position {
     if (order_id_str === this.orderId) {
       if (status === OrderStatus.FULLY_MATCHED) {
         this.entryPrice = price;
-        log(
-          `${this.contractCode} position is open at ${this.entryPrice} for ${this.volume}`
-        );
+
+        log(`${this.contractCode}: Opened a position.`);
+        log(`Entry price - ${this.entryPrice}`);
+        log(`Volume - ${this.volume}`);
+        log("");
         this.state = PositionState.OPEN;
 
         await this.placeStopLoss(this.stopLossPrice);
@@ -71,9 +75,12 @@ export abstract class Position {
     ) {
       switch (status) {
         case OrderStatus.FULLY_MATCHED:
-          log(
-            `${this.contractCode} position with entry price of ${this.entryPrice} and volume of ${this.volume} is closed on ${price}.`
-          );
+          log(`${this.contractCode}: Closed a position.`);
+          log(`Entry price - ${this.entryPrice}`);
+          log(`Volume - ${this.volume}`);
+          log(`Closed price - ${price}`);
+          log(`Deviation - ${toFixed(calculatePercentageDifference(this.entryPrice, price), 2)}`);
+          log("");
           this.state = PositionState.CLOSED;
           break;
         case OrderStatus.SUBMITTED:
@@ -110,7 +117,6 @@ export abstract class Position {
   }
 
   setStopLoss(order: Order | null) {
-    log(`${this.contractCode} sets stop loss to`, order);
     this.stopLossOrder = order;
   }
 

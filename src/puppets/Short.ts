@@ -46,8 +46,7 @@ export class Short extends Position {
       contract_code: this.contractCode,
       volume: this.volume,
       direction: Direction.BUY,
-      sl_order_price_type: OrderPriceType.LIMIT,
-      sl_order_price: price,
+      sl_order_price_type: OrderPriceType.BBO,
       sl_trigger_price: price,
     });
 

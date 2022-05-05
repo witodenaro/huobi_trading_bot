@@ -35,6 +35,7 @@ import {
 } from "../utils/initializer";
 import { cancelAllStopLossTakeProfit } from "../api/linear-swap-api/v1/swap_tpsl_cancelall";
 import { PositionState } from "../puppets/Position";
+import { toFixed } from "../utils/number";
 
 export class Trader {
   private long: Long | null = null;
@@ -242,8 +243,8 @@ export class Trader {
     const positionsAreClosedOrNotExist =
       shortIsClosedOrNotExists && longIsClosedOrNotExists;
 
-    log(`${this._contractCode}: Short pos state after update is`, this.short);
-    log(`${this._contractCode}: Long pos state after update is`, this.long);
+    log(`${this._contractCode}:`, this.short);
+    log(`${this._contractCode}:`, this.long);
     if (positionsAreClosedOrNotExist) {
       await this.handleAllPositionsAreClosed();
     }
@@ -300,14 +301,16 @@ export class Trader {
       }
 
       if (updatedStopLoss) {
-        log(`${this._contractCode} long profit is ${currentPriceDeviation}%`);
-        log(
-          `${this._contractCode} long: stop loss is set to ` +
-            `${calculatePercentageDifference(
-              this.long.entryPrice,
-              updatedStopLoss
-            )}% - ${updatedStopLoss} USDT`
-        );
+        const stopLossDeviation = toFixed(calculatePercentageDifference(
+          this.long.entryPrice,
+          updatedStopLoss
+        ), 2);
+
+        log(`${this._contractCode} updates LONG stop loss`);
+        log(`Deviation - ${toFixed(currentPriceDeviation, 2)}%`);
+        log(`Stop Loss Price - ${updatedStopLoss}`);
+        log(`Stop Loss Deviation - ${toFixed(stopLossDeviation, 2)}%`);
+        log("");
         await this.long.updateStopLoss(updatedStopLoss);
       }
     }
@@ -364,14 +367,15 @@ export class Trader {
       }
 
       if (updatedStopLoss) {
-        log(`${this._contractCode} short profit is ${currentPriceDeviation}%`);
-        log(
-          `${this._contractCode} short: stop loss is set to ` +
-            `${calculatePercentageDifference(
-              this.short.entryPrice,
-              updatedStopLoss
-            )}% - ${updatedStopLoss} USDT`
-        );
+        const stopLossDeviation = toFixed(calculatePercentageDifference(
+          this.short.entryPrice,
+          updatedStopLoss
+        ), 2);
+        log(`${this._contractCode} updates SHORT stop loss`);
+        log(`Deviation - ${toFixed(currentPriceDeviation, 2)}%`);
+        log(`Stop Loss Price - ${updatedStopLoss}`);
+        log(`Stop Loss Deviation - ${toFixed(stopLossDeviation, 2)}%`);
+        log("");
         await this.short.updateStopLoss(updatedStopLoss);
       }
     }
