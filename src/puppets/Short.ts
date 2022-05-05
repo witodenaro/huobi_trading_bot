@@ -41,9 +41,8 @@ export class Short extends Position {
   async placeStopLoss(price: number): Promise<void> {
     const response = await placeStopLossTakeProfit({
       contract_code: this.contractCode,
-      volume: 1,
+      volume: this.volume,
       direction: Direction.BUY,
-      amount: this.volume,
       sl_order_price_type: OrderPriceType.LIMIT,
       sl_order_price: price,
       sl_trigger_price: price,

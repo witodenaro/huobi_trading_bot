@@ -26,8 +26,7 @@ interface SuccessResponse {
 
 type Params = {
   contract_code: ContractCode;
-  volume: number; // number of orders (always 1)
-  amount: number; // amount to buy/sell (e.g. 0.01 ETH)
+  volume: number;
 
   direction: Direction;
   // BUY -> Stop Loss for Short
