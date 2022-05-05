@@ -26,8 +26,6 @@ import { Short } from "../puppets/Short";
 import { log } from "../utils/logger";
 import { ContractCode } from "../types/order";
 import {
-  AccountInfo,
-  AccountOrderPos,
   AccountPositionsOrders,
   getAccountPositionsOrders,
   getHasEnoughBalance,
