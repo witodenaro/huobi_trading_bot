@@ -2,15 +2,21 @@ import { AxiosResponse } from "axios";
 import { config } from "../../../config";
 import { request } from "../../../connection/request";
 import { ContractCode, Direction, OrderPriceType } from "../../../types/order";
-import { ResponseStatus } from "../../../types/requests";
 
 export interface Order {
   order_id: number;
   order_id_str: string;
 }
 
-interface Response {
-  status: ResponseStatus;
+interface ErrorResponse {
+  status: "error";
+  err_code: number;
+  err_msg: string;
+  ts: number;
+}
+
+interface SuccessResponse {
+  status: "ok";
   data: {
     tp_order: Order | null;
     sl_order: Order | null;
@@ -41,4 +47,4 @@ export const placeStopLossTakeProfit = ({ ...params }: Params) =>
     path: "/linear-swap-api/v1/swap_tpsl_order",
     baseUrl: config.FUTURES_BASE_URL,
     body: params,
-  }) as Promise<AxiosResponse<Response>>;
+  }) as Promise<AxiosResponse<SuccessResponse | ErrorResponse>>;

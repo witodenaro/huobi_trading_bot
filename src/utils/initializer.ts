@@ -1,4 +1,8 @@
 import { getAssetsAndPositions } from "../api/linear-swap-api/v1/swap_account_position_info";
+import {
+  Contract,
+  getContractInfo,
+} from "../api/linear-swap-api/v1/swap_contract_info";
 import { getOpenOrders } from "../api/linear-swap-api/v1/swap_openorders";
 import { PositionState } from "../puppets/Position";
 import {
@@ -26,7 +30,6 @@ export type AccountOrder = {
 export type AccountInfo = {
   short?: AccountPos;
   long?: AccountPos;
-  adjust_factor: number; // min. amount for an order to be placed
   margin_available: number; // balance
 };
 
@@ -60,17 +63,28 @@ export const searchForAccount = (accounts: Account[]) => {
   });
 };
 
+export const searchForContract = (contracts: Contract[]) => {
+  return contracts.find((contract) => {
+    return contract.contract_type === "swap";
+  });
+};
+
+type ContractSize = number;
+
+export const parseContract = (contract: Contract): ContractSize => {
+  return contract.contract_size;
+};
+
 export const parseAccount = (account: Account): AccountInfo => {
   const { positions } = account;
 
-  const shortPos = positions.find((pos) => pos.direction === Direction.SELL);
-  const longPos = positions.find((pos) => pos.direction === Direction.BUY);
+  const shortPos = positions?.find((pos) => pos.direction === Direction.SELL);
+  const longPos = positions?.find((pos) => pos.direction === Direction.BUY);
 
-  const { margin_available, adjust_factor } = account;
+  const { margin_available } = account;
 
   const info: AccountInfo = {
     margin_available,
-    adjust_factor,
   };
 
   if (shortPos) {
@@ -108,10 +122,10 @@ export const parseOpenOrders = (openOrders: OpenOrder[]) => {
   );
 };
 
-type AccountPositionsOrders = {
+export type AccountPositionsOrders = {
   margin_available: number;
-  adjust_factor: number;
   hasOpenPositionsOrAndOrders: boolean;
+  contract_size: number;
   short?: AccountOrderPos;
   long?: AccountOrderPos;
 };
@@ -121,6 +135,7 @@ export const getAccountPositionsOrders = async (
 ): Promise<AccountPositionsOrders> => {
   const assets = await getAssetsAndPositions({ contract_code: contractCode });
   const orders = await getOpenOrders({ contract_code: contractCode });
+  const contracts = await getContractInfo({ contract_code: contractCode });
 
   if (!assets.data?.data) {
     throw new Error(`${contractCode} couldn't fetch assets and positions`);
@@ -128,6 +143,10 @@ export const getAccountPositionsOrders = async (
 
   if (!orders.data?.data) {
     throw new Error(`${contractCode} couldn't fetch orders`);
+  }
+
+  if (!contracts.data?.data) {
+    throw new Error(`${contractCode} couldn't fetch contract info`);
   }
 
   const account = searchForAccount(assets.data.data);
@@ -138,6 +157,15 @@ export const getAccountPositionsOrders = async (
     );
   }
 
+  const contract = searchForContract(contracts.data.data);
+
+  if (!contract) {
+    throw new Error(
+      `${contractCode} couldn't find contract.`
+    );
+  }
+
+  const contractSize = parseContract(contract);
   const accountInfo = parseAccount(account);
   const orderInfo = parseOpenOrders(orders.data.data.orders);
 
@@ -177,7 +205,7 @@ export const getAccountPositionsOrders = async (
 
   return {
     margin_available: accountInfo.margin_available,
-    adjust_factor: accountInfo.adjust_factor,
+    contract_size: contractSize,
     hasOpenPositionsOrAndOrders: !!(
       longPosition ||
       shortPosition ||
@@ -192,8 +220,8 @@ export const getAccountPositionsOrders = async (
 export const getHasEnoughBalance = (
   marginAvailable: number,
   price: number,
-  minAmount: number
+  contractSize: number
 ) => {
   // enough to open 2 lowest positions in different directions
-  return marginAvailable / price > minAmount * 2;
+  return marginAvailable / price > contractSize * 2;
 };

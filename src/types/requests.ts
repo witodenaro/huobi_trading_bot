@@ -1,1 +1,4 @@
-export type ResponseStatus = "ok" | "error";
+export enum ResponseStatus {
+  OK = "ok",
+  ERROR = "error",
+}

@@ -1,4 +1,4 @@
-import { toFixed } from "./number";
+import { getPrecision, toFixed } from "./number";
 
 export const calculateStopLoss = (
   price: number,
@@ -23,10 +23,10 @@ export const calculatePercentageDifference = (
   return (plainDifference / entryPrice) * 100;
 };
 
-export const calculateEqualAmount = (
+export const calculateEqualVolume = (
   latestPrice: number,
   marginAvailable: number,
-  precision: number
+  contractSize: number
 ) => {
-  return toFixed(marginAvailable / latestPrice / 2, precision);
+  return Math.floor(marginAvailable / latestPrice / 2 / contractSize);
 };

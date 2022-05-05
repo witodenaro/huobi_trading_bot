@@ -19,7 +19,7 @@ export abstract class Position {
   constructor(
     public contractCode: ContractCode,
     public entryPrice: number,
-    public amount: number,
+    public volume: number,
     public stopLossPrice: number,
     public state = PositionState.INITIALIZED
   ) {}
@@ -28,9 +28,9 @@ export abstract class Position {
     if (!this.isInitialized()) {
       throw new Error("Can't open position if it's state is not 'Initialized'");
     }
-
+    
     log(
-      `${this.contractCode} position order placed at ${this.entryPrice} for ${this.amount}`
+      `${this.contractCode} position order placed at ${this.entryPrice} for ${this.volume}`
     );
     await this._placeOrder();
   }
@@ -54,8 +54,9 @@ export abstract class Position {
     // Action with the position itself
     if (order_id_str === this.orderId) {
       if (status === OrderStatus.FULLY_MATCHED) {
+        this.entryPrice = price;
         log(
-          `${this.contractCode} position is open at ${this.entryPrice} for ${this.amount}`
+          `${this.contractCode} position is open at ${this.entryPrice} for ${this.volume}`
         );
         this.state = PositionState.OPEN;
 
@@ -71,7 +72,7 @@ export abstract class Position {
       switch (status) {
         case OrderStatus.FULLY_MATCHED:
           log(
-            `${this.contractCode} position with entry price of ${this.entryPrice} and amount of ${this.amount} is closed on ${price}.`
+            `${this.contractCode} position with entry price of ${this.entryPrice} and volume of ${this.volume} is closed on ${price}.`
           );
           this.state = PositionState.CLOSED;
           break;

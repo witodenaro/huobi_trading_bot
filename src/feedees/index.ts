@@ -1,5 +1,5 @@
-import EthOrderFeedee from "./orders/ethOrder";
-import EthPriceFeedee from "./prices/ethPrice";
+import AncOrderFeedee from "./orders/ancOrder";
+import AncPriceFeedee from "./prices/ancPrice";
 
-export const priceFeedees = [EthPriceFeedee];
-export const orderFeedees = [EthOrderFeedee];
+export const priceFeedees = [AncPriceFeedee];
+export const orderFeedees = [AncOrderFeedee];

@@ -23,7 +23,6 @@ type Params = {
   client_order_id?: number; // client-specified ids
   price?: number;
   volume: number; // number of orders
-  amount: number; // amount to buy/sell
   direction: Direction;
   offset?: OrderOffset;
   lever_rate: number;

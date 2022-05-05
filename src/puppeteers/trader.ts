@@ -7,7 +7,7 @@ import {
   CONSERVATIVE_STOP_LOSS_BREAKPOINT,
   INTERMEDIATE_LONG_STOP_LOSS_DEVIATION,
   SHORT_STOP_LOSS_DEVIATION,
-} from "./trader.data";
+} from "./Trader.data";
 import {
   OrderFeedee,
   OrderListener,
@@ -16,7 +16,7 @@ import {
   PriceListener,
 } from "../feedees/types";
 import {
-  calculateEqualAmount,
+  calculateEqualVolume,
   calculatePercentageDifference,
   calculateStopLoss,
 } from "../utils/calculator";
@@ -27,12 +27,13 @@ import { log } from "../utils/logger";
 import { ContractCode } from "../types/order";
 import {
   AccountInfo,
+  AccountOrderPos,
+  AccountPositionsOrders,
   getAccountPositionsOrders,
   getHasEnoughBalance,
 } from "../utils/initializer";
 import { cancelAllStopLossTakeProfit } from "../api/linear-swap-api/v1/swap_tpsl_cancelall";
 import { PositionState } from "../puppets/Position";
-import { getPrecision } from "../utils/number";
 
 export class Trader {
   private long: Long | null = null;
@@ -63,7 +64,7 @@ export class Trader {
       short,
       long,
       hasOpenPositionsOrAndOrders,
-      adjust_factor,
+      contract_size: adjust_factor,
     } = accountPositionsOrders;
 
     if (short) {
@@ -99,10 +100,10 @@ export class Trader {
     this._orderFeedee.addListener(this._orderUpdateHandler as OrderListener);
   }
 
-  checkHasEnoughBalance({ margin_available, adjust_factor }: AccountInfo) {
+  checkHasEnoughBalance({ margin_available, contract_size }: AccountPositionsOrders) {
     const latestPrice = this.getLatestPrice();
 
-    return getHasEnoughBalance(margin_available, latestPrice, adjust_factor);
+    return getHasEnoughBalance(margin_available, latestPrice, contract_size);
   }
 
   getLatestPrice() {
@@ -131,7 +132,11 @@ export class Trader {
       state,
       orderId
     );
-    await this.short.placeStopLoss(stopLoss);
+
+    if (state === PositionState.OPEN) {
+      await this.short.placeStopLoss(stopLoss);
+    }
+
     log(`${this._contractCode} trader syncs with existing SHORT position.`);
     log(
       `${this._contractCode} POS: Entry price - ${price}, amount - ${amount}, state - ${state}`
@@ -152,16 +157,20 @@ export class Trader {
       state,
       orderId
     );
-    await this.long.placeStopLoss(stopLoss);
+
+    if (state === PositionState.OPEN) {
+      await this.long.placeStopLoss(stopLoss);
+    }
+
     log(`${this._contractCode} trader syncs with existing LONG position.`);
     log(
       `${this._contractCode} POS: Entry price - ${price}, amount - ${amount}, state - ${state}`
     );
   }
 
-  async openShort(price: number, amount: number) {
+  async openShort(price: number, volume: number) {
     const stopLoss = calculateStopLoss(price, SHORT_STOP_LOSS_DEVIATION);
-    this.short = new Short(this._contractCode, price, amount, stopLoss);
+    this.short = new Short(this._contractCode, price, volume, stopLoss);
     await this.short.open();
   }
 
@@ -174,19 +183,15 @@ export class Trader {
   async openPositions(
     price: number,
     marginAvailable: number,
-    adjust_factor: number
+    contractSize: number
   ) {
-    const amount = calculateEqualAmount(
-      price,
-      marginAvailable,
-      getPrecision(adjust_factor)
-    );
+    const volume = calculateEqualVolume(price, marginAvailable, contractSize);
 
-    const openShortPromise = this.openShort(price, amount);
-    const openLongPromise = this.openLong(price, amount);
+    const openShortPromise = this.openShort(price, volume);
+    const openLongPromise = this.openLong(price, volume);
 
     log(
-      `${this._contractCode} trader opens new positions at ${price} of ${amount} amount`
+      `${this._contractCode} trader opens new positions at ${price} of ${volume} volume`
     );
     await Promise.all([openLongPromise, openShortPromise]);
   }
@@ -197,7 +202,7 @@ export class Trader {
     );
 
     const hasEnoughBalance = this.checkHasEnoughBalance(accountPositionsOrders);
-    const { margin_available, hasOpenPositionsOrAndOrders, adjust_factor } =
+    const { margin_available, hasOpenPositionsOrAndOrders, contract_size } =
       accountPositionsOrders;
 
     if (hasOpenPositionsOrAndOrders) {
@@ -213,7 +218,7 @@ export class Trader {
     }
 
     const latestPrice = this.getLatestPrice();
-    await this.openPositions(latestPrice, margin_available, adjust_factor);
+    await this.openPositions(latestPrice, margin_available, contract_size);
   }
 
   async handlePriceChange(latestPrice: number) {
@@ -262,7 +267,9 @@ export class Trader {
         // e.g. Price went up 5% -> set stop loss at -2.5% of the current price
         case currentPriceDeviation > INTERMEDIATE_STOP_LOSS_BREAKPOINT:
           if (this.long.stopLossPrice < intermediateStopLoss) {
-            log(`${this._contractCode} long profit is > ${INTERMEDIATE_STOP_LOSS_BREAKPOINT}`);
+            log(
+              `${this._contractCode} long profit is > ${INTERMEDIATE_STOP_LOSS_BREAKPOINT}`
+            );
             log(
               `${this._contractCode} long: stop loss is set to 
               ${INTERMEDIATE_LONG_STOP_LOSS_DEVIATION}% - ${intermediateStopLoss} USDT`
@@ -274,7 +281,9 @@ export class Trader {
         // e.g. Price went up 2% -> set stop loss at -1% of the current price
         case currentPriceDeviation > CONSERVATIVE_STOP_LOSS_BREAKPOINT:
           if (this.long.stopLossPrice < conservativeStopLoss) {
-            log(`${this._contractCode} long profit is > ${CONSERVATIVE_STOP_LOSS_BREAKPOINT}`);
+            log(
+              `${this._contractCode} long profit is > ${CONSERVATIVE_STOP_LOSS_BREAKPOINT}`
+            );
             log(
               `${this._contractCode} long: stop loss is set to 
               ${CONSERVATIVE_LONG_STOP_LOSS_DEVIATION}% - ${conservativeStopLoss} USDT`
@@ -311,7 +320,9 @@ export class Trader {
         // e.g. Price went down 5% -> set stop loss at +2.5% of the current price
         case currentPriceDeviation < -INTERMEDIATE_STOP_LOSS_BREAKPOINT:
           if (this.short.stopLossPrice > intermediateStopLoss) {
-            log(`${this._contractCode} short profit is > ${INTERMEDIATE_STOP_LOSS_BREAKPOINT}`);
+            log(
+              `${this._contractCode} short profit is > ${INTERMEDIATE_STOP_LOSS_BREAKPOINT}`
+            );
             log(
               `${this._contractCode} short: stop loss is set to 
               -${INTERMEDIATE_SHORT_STOP_LOSS_DEVIATION}% - ${intermediateStopLoss} USDT`
@@ -323,7 +334,9 @@ export class Trader {
         // e.g. Price went down 2% -> set stop loss at +1% of the current price
         case currentPriceDeviation < -CONSERVATIVE_STOP_LOSS_BREAKPOINT:
           if (this.short.stopLossPrice > conservativeStopLoss) {
-            log(`${this._contractCode} short profit is > ${CONSERVATIVE_STOP_LOSS_BREAKPOINT}`);
+            log(
+              `${this._contractCode} short profit is > ${CONSERVATIVE_STOP_LOSS_BREAKPOINT}`
+            );
             log(
               `${this._contractCode} short: stop loss is set to 
               -${CONSERVATIVE_SHORT_STOP_LOSS_DEVIATION}% - ${conservativeStopLoss} USDT`

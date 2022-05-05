@@ -1,18 +1,18 @@
 import { initSocketConnection } from "./src/connection/sockets";
-import EthOrderFeedee from "./src/feedees/orders/ethOrder";
-import EthPriceFeedee from "./src/feedees/prices/ethPrice";
-import { Trader } from "./src/puppeteers/trader";
+import AncOrderFeedee from "./src/feedees/orders/ancOrder";
+import AncPriceFeedee from "./src/feedees/prices/ancPrice";
+import { Trader } from "./src/puppeteers/Trader";
 import { ContractCode } from "./src/types/order";
 
 const init = async () => {
   await initSocketConnection();
 
-  const ethTrader = new Trader(
-    ContractCode.ETH_USDT,
-    EthPriceFeedee,
-    EthOrderFeedee
+  const ancTrader = new Trader(
+    ContractCode.ANC_USDT,
+    AncPriceFeedee,
+    AncOrderFeedee
   );
-  await ethTrader.init();
+  await ancTrader.init();
 };
 
 init();

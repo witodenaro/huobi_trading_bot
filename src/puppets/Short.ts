@@ -6,17 +6,18 @@ import {
   OrderOffset,
   OrderPriceType,
 } from "../types/order";
+import { ResponseStatus } from "../types/requests";
 import { Position, PositionState } from "./Position";
 
 export class Short extends Position {
   static fromExisting(
     contractCode: ContractCode,
     price: number,
-    amount: number,
+    volume: number,
     state: PositionState,
     orderId?: string
   ): Short {
-    const short = new this(contractCode, price, amount, 0, state);
+    const short = new this(contractCode, price, volume, 0, state);
     short.orderId = orderId || null;
     return short;
   }
@@ -25,8 +26,7 @@ export class Short extends Position {
     const response = await placeOrder({
       contract_code: this.contractCode,
       price: this.entryPrice,
-      amount: this.amount,
-      volume: 1,
+      volume: this.volume,
       lever_rate: 1,
       direction: Direction.SELL,
       offset: OrderOffset.OPEN,
@@ -43,21 +43,19 @@ export class Short extends Position {
       contract_code: this.contractCode,
       volume: 1,
       direction: Direction.BUY,
-      amount: this.amount,
+      amount: this.volume,
       sl_order_price_type: OrderPriceType.LIMIT,
       sl_order_price: price,
       sl_trigger_price: price,
     });
 
-    const { sl_order } = response.data.data;
+    if (response.data.status === ResponseStatus.OK) {
+      const { sl_order } = response.data.data;
 
-    if (!sl_order) {
-      throw new Error(
-        "Stop loss order wasn't generated after placing stop loss"
-      );
+      this.stopLossOrder = sl_order;
+      this.stopLossPrice = price;
+    } else {
+      throw new Error(response.data.err_msg);
     }
-
-    this.stopLossOrder = sl_order;
-    this.stopLossPrice = price;
   }
 }

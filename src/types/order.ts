@@ -9,11 +9,13 @@ export enum MarketSymbol {
 	ETHUSDT = "ethusdt",
 	BTCUSDT = "bthusdt",
 	XNOUSDT = "nanousdt",
+  ANCUSDT = "ancusdt",
 }
 
 export enum ContractCode {
-	BTC_USDT = "BTC-USDT",
-	ETH_USDT = "ETH-USDT",
+  BTC_USDT = "BTC-USDT",
+  ETH_USDT = "ETH-USDT",
+  ANC_USDT = "ANC-USDT",
 }
 
 export enum MarginAccount {
@@ -83,8 +85,9 @@ export enum OrderLiquidationType {
 
 export type NumberBool = 0 | 1;
 export enum MarginMode {
-	ISOLATED = "isolated",
-	CROSS = "cross",
+  ISOLATED = "isolated",
+  CROSS = "cross",
+  ALL = "all",
 }
 
 export type PositionMode = "single_side" | "dual_side";
