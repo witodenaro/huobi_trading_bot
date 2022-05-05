@@ -7,6 +7,9 @@ import {
   CONSERVATIVE_STOP_LOSS_BREAKPOINT,
   INTERMEDIATE_LONG_STOP_LOSS_DEVIATION,
   SHORT_STOP_LOSS_DEVIATION,
+  AGGRESSIVE_LONG_STOP_LOSS_DEVIATION,
+  AGGRESSIVE_STOP_LOSS_BREAKPOINT,
+  AGGRESSIVE_SHORT_STOP_LOSS_DEVIATION,
 } from "./trader.data";
 import {
   OrderFeedee,
@@ -98,7 +101,10 @@ export class Trader {
     this._orderFeedee.addListener(this._orderUpdateHandler as OrderListener);
   }
 
-  checkHasEnoughBalance({ margin_available, contract_size }: AccountPositionsOrders) {
+  checkHasEnoughBalance({
+    margin_available,
+    contract_size,
+  }: AccountPositionsOrders) {
     const latestPrice = this.getLatestPrice();
 
     return getHasEnoughBalance(margin_available, latestPrice, contract_size);
@@ -255,42 +261,52 @@ export class Trader {
         price,
         INTERMEDIATE_LONG_STOP_LOSS_DEVIATION
       );
+      const aggressiveStopLoss = calculateStopLoss(
+        price,
+        AGGRESSIVE_LONG_STOP_LOSS_DEVIATION
+      );
 
+      let updatedStopLoss: number | null = null;
       /*
 				Depending on the price deviation I use different risk management strategies
 
 				More margin = more space for corrections
 			*/
       switch (true) {
+        // e.g. Price went up 10% -> set stop loss at -5% of the current price
+        case currentPriceDeviation > AGGRESSIVE_STOP_LOSS_BREAKPOINT:
+          if (this.long.stopLossPrice < aggressiveStopLoss) {
+            updatedStopLoss = aggressiveStopLoss;
+          }
+          break;
+
         // e.g. Price went up 5% -> set stop loss at -2.5% of the current price
         case currentPriceDeviation > INTERMEDIATE_STOP_LOSS_BREAKPOINT:
           if (this.long.stopLossPrice < intermediateStopLoss) {
-            log(
-              `${this._contractCode} long profit is > ${INTERMEDIATE_STOP_LOSS_BREAKPOINT}`
-            );
-            log(
-              `${this._contractCode} long: stop loss is set to 
-              ${INTERMEDIATE_LONG_STOP_LOSS_DEVIATION}% - ${intermediateStopLoss} USDT`
-            );
-            await this.long.updateStopLoss(intermediateStopLoss);
+            updatedStopLoss = intermediateStopLoss;
           }
           break;
 
         // e.g. Price went up 2% -> set stop loss at -1% of the current price
         case currentPriceDeviation > CONSERVATIVE_STOP_LOSS_BREAKPOINT:
           if (this.long.stopLossPrice < conservativeStopLoss) {
-            log(
-              `${this._contractCode} long profit is > ${CONSERVATIVE_STOP_LOSS_BREAKPOINT}`
-            );
-            log(
-              `${this._contractCode} long: stop loss is set to 
-              ${CONSERVATIVE_LONG_STOP_LOSS_DEVIATION}% - ${conservativeStopLoss} USDT`
-            );
-            await this.long.updateStopLoss(conservativeStopLoss);
+            updatedStopLoss = conservativeStopLoss;
           }
           break;
         default:
           break;
+      }
+
+      if (updatedStopLoss) {
+        log(`${this._contractCode} long profit is ${currentPriceDeviation}%`);
+        log(
+          `${this._contractCode} long: stop loss is set to ` +
+            `${calculatePercentageDifference(
+              this.long.entryPrice,
+              updatedStopLoss
+            )}% - ${updatedStopLoss} USDT`
+        );
+        await this.long.updateStopLoss(updatedStopLoss);
       }
     }
 
@@ -308,6 +324,12 @@ export class Trader {
         price,
         INTERMEDIATE_SHORT_STOP_LOSS_DEVIATION
       );
+      const aggressiveStopLoss = calculateStopLoss(
+        price,
+        AGGRESSIVE_SHORT_STOP_LOSS_DEVIATION
+      );
+
+      let updatedStopLoss: number | null = null;
 
       /*
 				Depending on the price deviation I use different risk management strategies
@@ -316,34 +338,39 @@ export class Trader {
 			*/
       switch (true) {
         // e.g. Price went down 5% -> set stop loss at +2.5% of the current price
+        case currentPriceDeviation < -AGGRESSIVE_STOP_LOSS_BREAKPOINT:
+          if (this.short.stopLossPrice > aggressiveStopLoss) {
+            updatedStopLoss = aggressiveStopLoss;
+          }
+          break;
+
+        // e.g. Price went down 5% -> set stop loss at +2.5% of the current price
         case currentPriceDeviation < -INTERMEDIATE_STOP_LOSS_BREAKPOINT:
           if (this.short.stopLossPrice > intermediateStopLoss) {
-            log(
-              `${this._contractCode} short profit is > ${INTERMEDIATE_STOP_LOSS_BREAKPOINT}`
-            );
-            log(
-              `${this._contractCode} short: stop loss is set to 
-              -${INTERMEDIATE_SHORT_STOP_LOSS_DEVIATION}% - ${intermediateStopLoss} USDT`
-            );
-            await this.short.updateStopLoss(intermediateStopLoss);
+            updatedStopLoss = intermediateStopLoss;
           }
           break;
 
         // e.g. Price went down 2% -> set stop loss at +1% of the current price
         case currentPriceDeviation < -CONSERVATIVE_STOP_LOSS_BREAKPOINT:
           if (this.short.stopLossPrice > conservativeStopLoss) {
-            log(
-              `${this._contractCode} short profit is > ${CONSERVATIVE_STOP_LOSS_BREAKPOINT}`
-            );
-            log(
-              `${this._contractCode} short: stop loss is set to 
-              -${CONSERVATIVE_SHORT_STOP_LOSS_DEVIATION}% - ${conservativeStopLoss} USDT`
-            );
-            await this.short.updateStopLoss(conservativeStopLoss);
+            updatedStopLoss = conservativeStopLoss;
           }
           break;
         default:
           break;
+      }
+
+      if (updatedStopLoss) {
+        log(`${this._contractCode} short profit is ${currentPriceDeviation}%`);
+        log(
+          `${this._contractCode} short: stop loss is set to ` +
+            `${calculatePercentageDifference(
+              this.short.entryPrice,
+              updatedStopLoss
+            )}% - ${updatedStopLoss} USDT`
+        );
+        await this.short.updateStopLoss(updatedStopLoss);
       }
     }
   }
