@@ -337,7 +337,7 @@ export class Trader {
 				More margin = more space for corrections
 			*/
       switch (true) {
-        // e.g. Price went down 5% -> set stop loss at +2.5% of the current price
+        // e.g. Price went down 10% -> set stop loss at +5% of the current price
         case currentPriceDeviation < -AGGRESSIVE_STOP_LOSS_BREAKPOINT:
           if (this.short.stopLossPrice > aggressiveStopLoss) {
             updatedStopLoss = aggressiveStopLoss;
