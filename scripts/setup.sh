@@ -8,9 +8,10 @@ sudo chmod 666 /var/run/docker.sock
 sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 sudo service docker start
 
+docker rmi $(docker images -q -f dangling=true)
+
 HUOBI_ACCESS_KEY=$(aws ssm get-parameters --region eu-central-1 --names HUOBI_ACCESS_KEY --with-decryption --query Parameters[0].Value)
 HUOBI_SECRET_KEY=$(aws ssm get-parameters --region eu-central-1 --names HUOBI_SECRET_KEY --with-decryption --query Parameters[0].Value)
-
 cd /home/ec2-user/huobi_bot
 
 cp .env.example .env
