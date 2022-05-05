@@ -43,8 +43,9 @@ export class Long extends Position {
       contract_code: this.contractCode,
       volume: this.volume,
       direction: Direction.SELL,
-      sl_order_price_type: OrderPriceType.BBO,
+      sl_order_price_type: OrderPriceType.OPTIMAL_5,
       sl_trigger_price: price,
+      sl_order_price: price,
     });
 
     if (response.data.status === ResponseStatus.OK) {
