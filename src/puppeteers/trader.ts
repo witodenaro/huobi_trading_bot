@@ -7,7 +7,7 @@ import {
   CONSERVATIVE_STOP_LOSS_BREAKPOINT,
   INTERMEDIATE_LONG_STOP_LOSS_DEVIATION,
   SHORT_STOP_LOSS_DEVIATION,
-} from "./Trader.data";
+} from "./trader.data";
 import {
   OrderFeedee,
   OrderListener,
