@@ -79,7 +79,7 @@ export abstract class Position {
           log(`Entry price - ${this.entryPrice}`);
           log(`Volume - ${this.volume}`);
           log(`Closed price - ${price}`);
-          log(`Deviation - ${toFixed(calculatePercentageDifference(this.entryPrice, price), 2)}`);
+          log(`Deviation - ${toFixed(calculatePercentageDifference(this.entryPrice, price), 2)}%`);
           log("");
           this.state = PositionState.CLOSED;
           break;

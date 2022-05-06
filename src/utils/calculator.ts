@@ -1,4 +1,4 @@
-import { getPrecision, toFixed } from "./number";
+import { toFixed } from "./number";
 
 export const calculateStopLoss = (
   price: number,

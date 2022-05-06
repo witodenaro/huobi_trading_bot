@@ -1,9 +1,9 @@
-export const STOP_LOSS_DEVIATION = 2; // 2 (%)
-export const CONSERVATIVE_STOP_LOSS_DEVIATION = 1; // 1 (%)
+export const STOP_LOSS_DEVIATION = 3; // 2 (%)
+export const CONSERVATIVE_STOP_LOSS_DEVIATION = 2; // 1 (%)
 export const INTERMEDIATE_STOP_LOSS_DEVIATION = 2.5; // 2.5 (%)
 export const AGGRESSIVE_STOP_LOSS_DEVIATION = 5; // 5 (%)
 
-export const CONSERVATIVE_STOP_LOSS_BREAKPOINT = 2; // 2 (%)
+export const CONSERVATIVE_STOP_LOSS_BREAKPOINT = 3; // 2 (%)
 export const INTERMEDIATE_STOP_LOSS_BREAKPOINT = 5; // 5 (%)
 export const AGGRESSIVE_STOP_LOSS_BREAKPOINT = 10; // 10 (%)
 
