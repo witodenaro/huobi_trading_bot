@@ -7,9 +7,6 @@ import {
   CONSERVATIVE_STOP_LOSS_BREAKPOINT,
   INTERMEDIATE_LONG_STOP_LOSS_DEVIATION,
   SHORT_STOP_LOSS_DEVIATION,
-  AGGRESSIVE_LONG_STOP_LOSS_DEVIATION,
-  AGGRESSIVE_STOP_LOSS_BREAKPOINT,
-  AGGRESSIVE_SHORT_STOP_LOSS_DEVIATION,
 } from "./trader.data";
 import {
   OrderFeedee,
@@ -289,11 +286,6 @@ export class Trader {
         INTERMEDIATE_LONG_STOP_LOSS_DEVIATION,
         this._pricePrecision
       );
-      const aggressiveStopLoss = calculateStopLoss(
-        price,
-        AGGRESSIVE_LONG_STOP_LOSS_DEVIATION,
-        this._pricePrecision
-      );
 
       let updatedStopLoss: number | null = null;
       /*
@@ -302,13 +294,6 @@ export class Trader {
 				More margin = more space for corrections
 			*/
       switch (true) {
-        // e.g. Price went up 10% -> set stop loss at -5% of the current price
-        case currentPriceDeviation > AGGRESSIVE_STOP_LOSS_BREAKPOINT:
-          if (this.long.stopLossPrice < aggressiveStopLoss) {
-            updatedStopLoss = aggressiveStopLoss;
-          }
-          break;
-
         // e.g. Price went up 5% -> set stop loss at -2.5% of the current price
         case currentPriceDeviation > INTERMEDIATE_STOP_LOSS_BREAKPOINT:
           if (this.long.stopLossPrice < intermediateStopLoss) {
@@ -357,11 +342,6 @@ export class Trader {
         INTERMEDIATE_SHORT_STOP_LOSS_DEVIATION,
         this._pricePrecision
       );
-      const aggressiveStopLoss = calculateStopLoss(
-        price,
-        AGGRESSIVE_SHORT_STOP_LOSS_DEVIATION,
-        this._pricePrecision
-      );
 
       let updatedStopLoss: number | null = null;
 
@@ -371,13 +351,6 @@ export class Trader {
 				More margin = more space for corrections
 			*/
       switch (true) {
-        // e.g. Price went down 10% -> set stop loss at +5% of the current price
-        case currentPriceDeviation < -AGGRESSIVE_STOP_LOSS_BREAKPOINT:
-          if (this.short.stopLossPrice > aggressiveStopLoss) {
-            updatedStopLoss = aggressiveStopLoss;
-          }
-          break;
-
         // e.g. Price went down 5% -> set stop loss at +2.5% of the current price
         case currentPriceDeviation < -INTERMEDIATE_STOP_LOSS_BREAKPOINT:
           if (this.short.stopLossPrice > intermediateStopLoss) {
