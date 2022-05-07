@@ -103,7 +103,7 @@ export class Trader {
 
     this._priceFeedee.addListener(this._priceChangeHandler as PriceListener);
     this._orderFeedee.addListener(this._orderUpdateHandler as OrderListener);
-    this._pricePrecision = getPrecision(contract_size);
+    this._pricePrecision = getPrecision(latestPrice);
   }
 
   checkHasEnoughBalance({
@@ -133,6 +133,7 @@ export class Trader {
     state: PositionState,
     orderId?: string
   ) {
+    console.log(this._pricePrecision);
     const stopLoss = calculateStopLoss(
       price,
       SHORT_STOP_LOSS_DEVIATION,
