@@ -8,17 +8,22 @@ import {
   OrderPriceType,
 } from "../types/order";
 import { ResponseStatus } from "../types/requests";
+import { AccountOrderPos } from "../utils/initializer";
 
 export class Long extends Position {
   static fromExisting(
     contractCode: ContractCode,
-    price: number,
-    volume: number,
-    state: PositionState,
-    orderId?: string
+    order: AccountOrderPos
   ): Long {
-    const long = new this(contractCode, price, volume, 0, state);
-    long.orderId = orderId || null;
+    const long = new this(
+      contractCode,
+      order.entryPrice,
+      order.volume,
+      order.stopLoss?.order_price || 0,
+      order.state
+    );
+    long.orderId = order.orderId || null;
+    long.stopLossOrder = order.stopLoss;
     return long;
   }
 

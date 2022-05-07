@@ -26,6 +26,7 @@ import { Short } from "../puppets/Short";
 import { log } from "../utils/logger";
 import { ContractCode } from "../types/order";
 import {
+  AccountOrderPos,
   AccountPositionsOrders,
   getAccountPositionsOrders,
   getHasEnoughBalance,
@@ -56,8 +57,6 @@ export class Trader {
       this._contractCode
     );
 
-    await cancelAllStopLossTakeProfit({ contract_code: this._contractCode });
-
     const hasEnoughBalance = this.checkHasEnoughBalance(accountPositionsOrders);
     const {
       margin_available,
@@ -67,25 +66,17 @@ export class Trader {
       contract_size,
     } = accountPositionsOrders;
 
+    const latestPrice = this.getLatestPrice();
+
+    this._pricePrecision = getPrecision(latestPrice);
+
     if (short) {
-      await this.syncShort(
-        short.entryPrice,
-        short.volume,
-        short.state,
-        short.orderId
-      );
+      await this.syncShort(short);
     }
 
     if (long) {
-      await this.syncLong(
-        long.entryPrice,
-        long.volume,
-        long.state,
-        long.orderId
-      );
+      await this.syncLong(long);
     }
-
-    const latestPrice = this.getLatestPrice();
 
     if (!hasOpenPositionsOrAndOrders && !hasEnoughBalance) {
       throw new Error(
@@ -103,7 +94,6 @@ export class Trader {
 
     this._priceFeedee.addListener(this._priceChangeHandler as PriceListener);
     this._orderFeedee.addListener(this._orderUpdateHandler as OrderListener);
-    this._pricePrecision = getPrecision(latestPrice);
   }
 
   checkHasEnoughBalance({
@@ -127,63 +117,43 @@ export class Trader {
     return latestPrice;
   }
 
-  async syncShort(
-    price: number,
-    amount: number,
-    state: PositionState,
-    orderId?: string
-  ) {
-    console.log(this._pricePrecision);
-    const stopLoss = calculateStopLoss(
-      price,
+  async syncShort(order: AccountOrderPos) {
+    const initialStopLoss = calculateStopLoss(
+      order.entryPrice,
       SHORT_STOP_LOSS_DEVIATION,
       this._pricePrecision
     );
-    this.short = Short.fromExisting(
-      this._contractCode,
-      price,
-      amount,
-      state,
-      orderId
-    );
 
-    if (state === PositionState.OPEN) {
-      await this.short.placeStopLoss(stopLoss);
+    this.short = Short.fromExisting(this._contractCode, order);
+
+    if (order.state === PositionState.OPEN && !this.short.stopLossOrder) {
+      await this.short.placeStopLoss(initialStopLoss);
     }
 
     log(`${this._contractCode} trader syncs with existing SHORT position.`);
-    log(
-      `${this._contractCode} POS: Entry price - ${price}, amount - ${amount}, state - ${state}`
-    );
+    log(`Entry price: ${order.entryPrice}`);
+    log(`Volume: ${order.volume}`);
+    log(`State: ${order.state}`);
+    log("");
   }
 
-  async syncLong(
-    price: number,
-    amount: number,
-    state: PositionState,
-    orderId?: string
-  ) {
-    const stopLoss = calculateStopLoss(
-      price,
+  async syncLong(order: AccountOrderPos) {
+    const initialStopLoss = calculateStopLoss(
+      order.entryPrice,
       LONG_STOP_LOSS_DEVIATION,
       this._pricePrecision
     );
-    this.long = Long.fromExisting(
-      this._contractCode,
-      price,
-      amount,
-      state,
-      orderId
-    );
+    this.long = Long.fromExisting(this._contractCode, order);
 
-    if (state === PositionState.OPEN) {
-      await this.long.placeStopLoss(stopLoss);
+    if (this.long.state === PositionState.OPEN && !this.long.stopLossOrder) {
+      await this.long.placeStopLoss(initialStopLoss);
     }
 
     log(`${this._contractCode} trader syncs with existing LONG position.`);
-    log(
-      `${this._contractCode} POS: Entry price - ${price}, amount - ${amount}, state - ${state}`
-    );
+    log(`Entry price: ${order.entryPrice}`);
+    log(`Volume: ${order.volume}`);
+    log(`State: ${order.state}`);
+    log("");
   }
 
   async openShort(price: number, volume: number) {
@@ -244,6 +214,7 @@ export class Trader {
     }
 
     const latestPrice = this.getLatestPrice();
+    await cancelAllStopLossTakeProfit({ contract_code: this._contractCode });
     await this.openPositions(latestPrice, margin_available, contract_size);
   }
 

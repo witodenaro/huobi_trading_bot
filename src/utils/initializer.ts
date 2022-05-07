@@ -4,6 +4,10 @@ import {
   getContractInfo,
 } from "../api/linear-swap-api/v1/swap_contract_info";
 import { getOpenOrders } from "../api/linear-swap-api/v1/swap_openorders";
+import {
+  getAllStopLossTakeProfit,
+  SLTLOrder as SLTPOrder,
+} from "../api/linear-swap-api/v1/swap_tpsl_openorders";
 import { PositionState } from "../puppets/Position";
 import {
   Account,
@@ -38,10 +42,17 @@ type OpenOrdersInfo = {
   long: AccountOrder | null;
 };
 
+type SLTPOrderInfo = {
+  order_id: number;
+  order_id_str: string;
+  order_price: number;
+};
+
 export type AccountOrderPos = {
   entryPrice: number;
   volume: number;
   state: PositionState;
+  stopLoss: SLTPOrderInfo | null;
   orderId?: string;
 };
 
@@ -108,7 +119,7 @@ export const parseOpenOrders = (openOrders: OpenOrder[]) => {
 
       const orderInfo: AccountOrder = {
         entryPrice: order.price,
-        volume: order.margin_frozen / order.price,
+        volume: order.volume,
         orderId: order.order_id_str,
       };
 
@@ -119,6 +130,20 @@ export const parseOpenOrders = (openOrders: OpenOrder[]) => {
     },
     { short: null, long: null } as OpenOrdersInfo
   );
+};
+
+interface StopLosses {
+  short: null | SLTPOrder;
+  long: null | SLTPOrder;
+}
+
+export const parseStopLosses = (stopLosses: SLTPOrder[]): StopLosses => {
+  return {
+    short:
+      stopLosses.find((order) => order.direction === Direction.BUY) || null,
+    long:
+      stopLosses.find((order) => order.direction === Direction.SELL) || null,
+  };
 };
 
 export type AccountPositionsOrders = {
@@ -135,6 +160,9 @@ export const getAccountPositionsOrders = async (
   const assets = await getAssetsAndPositions({ contract_code: contractCode });
   const orders = await getOpenOrders({ contract_code: contractCode });
   const contracts = await getContractInfo({ contract_code: contractCode });
+  const stopLosses = await getAllStopLossTakeProfit({
+    contract_code: contractCode,
+  });
 
   if (!assets.data?.data) {
     throw new Error(`${contractCode} couldn't fetch assets and positions`);
@@ -146,6 +174,10 @@ export const getAccountPositionsOrders = async (
 
   if (!contracts.data?.data) {
     throw new Error(`${contractCode} couldn't fetch contract info`);
+  }
+
+  if (!stopLosses.data?.data) {
+    throw new Error(`${contractCode} couldn't fetch stop losses info`);
   }
 
   const account = searchForAccount(assets.data.data);
@@ -165,6 +197,7 @@ export const getAccountPositionsOrders = async (
   const contractSize = parseContract(contract);
   const accountInfo = parseAccount(account);
   const orderInfo = parseOpenOrders(orders.data.data.orders);
+  const stopLossesInfo = parseStopLosses(stopLosses.data.data.orders);
   const volumePrecision = getPrecision(contractSize);
 
   const { short: shortOrder, long: longOrder } = orderInfo;
@@ -175,6 +208,15 @@ export const getAccountPositionsOrders = async (
 
   if (shortOrder || shortPosition) {
     const shortState = shortOrder ? PositionState.PENDING : PositionState.OPEN;
+
+    const stopLoss: SLTPOrderInfo | null = stopLossesInfo.short
+      ? {
+        order_price: stopLossesInfo.short.order_price,
+        order_id: stopLossesInfo.short.order_id,
+        order_id_str: stopLossesInfo.short.order_id_str,
+      }
+      : null;
+
     short = {
       entryPrice:
         shortOrder?.entryPrice || (shortPosition as AccountPos).entryPrice,
@@ -184,11 +226,21 @@ export const getAccountPositionsOrders = async (
       ),
       orderId: shortOrder?.orderId,
       state: shortState,
+      stopLoss,
     };
   }
 
   if (longPosition || longOrder) {
     const longState = longOrder ? PositionState.PENDING : PositionState.OPEN;
+
+    const stopLoss: SLTPOrderInfo | null = stopLossesInfo.long
+      ? {
+        order_price: stopLossesInfo.long.order_price,
+        order_id: stopLossesInfo.long.order_id,
+        order_id_str: stopLossesInfo.long.order_id_str,
+      }
+      : null;
+
     long = {
       entryPrice:
         longOrder?.entryPrice || (longPosition as AccountPos).entryPrice,
@@ -198,6 +250,7 @@ export const getAccountPositionsOrders = async (
       ),
       orderId: longOrder?.orderId,
       state: longState,
+      stopLoss,
     };
   }
 

@@ -7,18 +7,23 @@ import {
   OrderPriceType,
 } from "../types/order";
 import { ResponseStatus } from "../types/requests";
+import { AccountOrderPos } from "../utils/initializer";
 import { Position, PositionState } from "./Position";
 
 export class Short extends Position {
   static fromExisting(
     contractCode: ContractCode,
-    price: number,
-    volume: number,
-    state: PositionState,
-    orderId?: string
+    order: AccountOrderPos
   ): Short {
-    const short = new this(contractCode, price, volume, 0, state);
-    short.orderId = orderId || null;
+    const short = new this(
+      contractCode,
+      order.entryPrice,
+      order.volume,
+      order.stopLoss?.order_price || 0,
+      order.state
+    );
+    short.orderId = order.orderId || null;
+    short.stopLossOrder = order.stopLoss || null;
     return short;
   }
 

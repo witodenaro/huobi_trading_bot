@@ -3,7 +3,7 @@ import { config } from "../../../config";
 import { request } from "../../../connection/request";
 import { ContractCode, Direction, OrderPriceType } from "../../../types/order";
 
-export interface Order {
+export interface SLTLOrderDigest {
   order_id: number;
   order_id_str: string;
 }
@@ -18,8 +18,8 @@ interface ErrorResponse {
 interface SuccessResponse {
   status: "ok";
   data: {
-    tp_order: Order | null;
-    sl_order: Order | null;
+    tp_order: SLTLOrderDigest | null;
+    sl_order: SLTLOrderDigest | null;
   };
   ts: number;
 }

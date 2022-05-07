@@ -1,5 +1,5 @@
 import { cancelStopLossTakeProfit } from "../api/linear-swap-api/v1/swap_tpsl_cancel";
-import { Order } from "../api/linear-swap-api/v1/swap_tpsl_order";
+import { SLTLOrderDigest } from "../api/linear-swap-api/v1/swap_tpsl_order";
 import { OrderNotification } from "../feedees/types";
 import { ContractCode, OrderSource, OrderStatus } from "../types/order";
 import { calculatePercentageDifference } from "../utils/calculator";
@@ -16,7 +16,7 @@ export enum PositionState {
 
 export abstract class Position {
   orderId: string | null = null;
-  stopLossOrder: Order | null = null;
+  stopLossOrder: SLTLOrderDigest | null = null;
 
   constructor(
     public contractCode: ContractCode,
@@ -116,7 +116,7 @@ export abstract class Position {
     this.setStopLoss(null);
   }
 
-  setStopLoss(order: Order | null) {
+  setStopLoss(order: SLTLOrderDigest | null) {
     this.stopLossOrder = order;
   }
 
