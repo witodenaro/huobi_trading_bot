@@ -19,11 +19,11 @@ export class Short extends Position {
       contractCode,
       order.entryPrice,
       order.volume,
-      order.stopLoss?.order_price || 0,
+      order.stopLoss?.trigger_price || 0,
       order.state
     );
     short.orderId = order.orderId || null;
-    short.stopLossOrder = order.stopLoss || null;
+    short.stopLossOrder = order.stopLoss;
     return short;
   }
 

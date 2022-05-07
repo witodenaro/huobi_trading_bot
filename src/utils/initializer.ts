@@ -45,7 +45,7 @@ type OpenOrdersInfo = {
 type SLTPOrderInfo = {
   order_id: number;
   order_id_str: string;
-  order_price: number;
+  trigger_price: number;
 };
 
 export type AccountOrderPos = {
@@ -179,7 +179,7 @@ export const getAccountPositionsOrders = async (
   if (!stopLosses.data?.data) {
     throw new Error(`${contractCode} couldn't fetch stop losses info`);
   }
-
+  
   const account = searchForAccount(assets.data.data);
 
   if (!account) {
@@ -211,7 +211,7 @@ export const getAccountPositionsOrders = async (
 
     const stopLoss: SLTPOrderInfo | null = stopLossesInfo.short
       ? {
-        order_price: stopLossesInfo.short.order_price,
+        trigger_price: stopLossesInfo.short.trigger_price,
         order_id: stopLossesInfo.short.order_id,
         order_id_str: stopLossesInfo.short.order_id_str,
       }
@@ -235,7 +235,7 @@ export const getAccountPositionsOrders = async (
 
     const stopLoss: SLTPOrderInfo | null = stopLossesInfo.long
       ? {
-        order_price: stopLossesInfo.long.order_price,
+        trigger_price: stopLossesInfo.long.trigger_price,
         order_id: stopLossesInfo.long.order_id,
         order_id_str: stopLossesInfo.long.order_id_str,
       }

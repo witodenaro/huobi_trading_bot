@@ -19,7 +19,7 @@ export class Long extends Position {
       contractCode,
       order.entryPrice,
       order.volume,
-      order.stopLoss?.order_price || 0,
+      order.stopLoss?.trigger_price || 0,
       order.state
     );
     long.orderId = order.orderId || null;
