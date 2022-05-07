@@ -35,11 +35,12 @@ import {
 } from "../utils/initializer";
 import { cancelAllStopLossTakeProfit } from "../api/linear-swap-api/v1/swap_tpsl_cancelall";
 import { PositionState } from "../puppets/Position";
-import { toFixed } from "../utils/number";
+import { getPrecision, toFixed } from "../utils/number";
 
 export class Trader {
   private long: Long | null = null;
   private short: Short | null = null;
+  private _pricePrecision = 0;
 
   private _priceChangeHandler: PriceListener | null = null;
   private _orderUpdateHandler: OrderListener | null = null;
@@ -66,7 +67,7 @@ export class Trader {
       short,
       long,
       hasOpenPositionsOrAndOrders,
-      contract_size: adjust_factor,
+      contract_size,
     } = accountPositionsOrders;
 
     if (short) {
@@ -87,19 +88,25 @@ export class Trader {
       );
     }
 
+    const latestPrice = this.getLatestPrice();
+
     if (!hasOpenPositionsOrAndOrders && !hasEnoughBalance) {
       throw new Error(
-        `${this._contractCode} trader can't open new positions due to unsufficient balance`
+        `${
+          this._contractCode
+        } trader can't open new positions due to unsufficient balance. Min is ${
+          contract_size * latestPrice * 2
+        }`
       );
     }
 
     if (!hasOpenPositionsOrAndOrders && hasEnoughBalance) {
-      const latestPrice = this.getLatestPrice();
-      await this.openPositions(latestPrice, margin_available, adjust_factor);
+      await this.openPositions(latestPrice, margin_available, contract_size);
     }
 
     this._priceFeedee.addListener(this._priceChangeHandler as PriceListener);
     this._orderFeedee.addListener(this._orderUpdateHandler as OrderListener);
+    this._pricePrecision = getPrecision(contract_size);
   }
 
   checkHasEnoughBalance({
@@ -129,7 +136,11 @@ export class Trader {
     state: PositionState,
     orderId?: string
   ) {
-    const stopLoss = calculateStopLoss(price, SHORT_STOP_LOSS_DEVIATION);
+    const stopLoss = calculateStopLoss(
+      price,
+      SHORT_STOP_LOSS_DEVIATION,
+      this._pricePrecision
+    );
     this.short = Short.fromExisting(
       this._contractCode,
       price,
@@ -154,7 +165,11 @@ export class Trader {
     state: PositionState,
     orderId?: string
   ) {
-    const stopLoss = calculateStopLoss(price, LONG_STOP_LOSS_DEVIATION);
+    const stopLoss = calculateStopLoss(
+      price,
+      LONG_STOP_LOSS_DEVIATION,
+      this._pricePrecision
+    );
     this.long = Long.fromExisting(
       this._contractCode,
       price,
@@ -174,13 +189,21 @@ export class Trader {
   }
 
   async openShort(price: number, volume: number) {
-    const stopLoss = calculateStopLoss(price, SHORT_STOP_LOSS_DEVIATION);
+    const stopLoss = calculateStopLoss(
+      price,
+      SHORT_STOP_LOSS_DEVIATION,
+      this._pricePrecision
+    );
     this.short = new Short(this._contractCode, price, volume, stopLoss);
     await this.short.open();
   }
 
   async openLong(price: number, amount: number) {
-    const stopLoss = calculateStopLoss(price, LONG_STOP_LOSS_DEVIATION);
+    const stopLoss = calculateStopLoss(
+      price,
+      LONG_STOP_LOSS_DEVIATION,
+      this._pricePrecision
+    );
     this.long = new Long(this._contractCode, price, amount, stopLoss);
     await this.long.open();
   }
@@ -258,15 +281,18 @@ export class Trader {
       );
       const conservativeStopLoss = calculateStopLoss(
         price,
-        CONSERVATIVE_LONG_STOP_LOSS_DEVIATION
+        CONSERVATIVE_LONG_STOP_LOSS_DEVIATION,
+        this._pricePrecision
       );
       const intermediateStopLoss = calculateStopLoss(
         price,
-        INTERMEDIATE_LONG_STOP_LOSS_DEVIATION
+        INTERMEDIATE_LONG_STOP_LOSS_DEVIATION,
+        this._pricePrecision
       );
       const aggressiveStopLoss = calculateStopLoss(
         price,
-        AGGRESSIVE_LONG_STOP_LOSS_DEVIATION
+        AGGRESSIVE_LONG_STOP_LOSS_DEVIATION,
+        this._pricePrecision
       );
 
       let updatedStopLoss: number | null = null;
@@ -301,10 +327,10 @@ export class Trader {
       }
 
       if (updatedStopLoss) {
-        const stopLossDeviation = toFixed(calculatePercentageDifference(
-          this.long.entryPrice,
-          updatedStopLoss
-        ), 2);
+        const stopLossDeviation = toFixed(
+          calculatePercentageDifference(this.long.entryPrice, updatedStopLoss),
+          2
+        );
 
         log(`${this._contractCode} updates LONG stop loss`);
         log(`Deviation - ${toFixed(currentPriceDeviation, 2)}%`);
@@ -323,15 +349,18 @@ export class Trader {
       );
       const conservativeStopLoss = calculateStopLoss(
         price,
-        CONSERVATIVE_SHORT_STOP_LOSS_DEVIATION
+        CONSERVATIVE_SHORT_STOP_LOSS_DEVIATION,
+        this._pricePrecision
       );
       const intermediateStopLoss = calculateStopLoss(
         price,
-        INTERMEDIATE_SHORT_STOP_LOSS_DEVIATION
+        INTERMEDIATE_SHORT_STOP_LOSS_DEVIATION,
+        this._pricePrecision
       );
       const aggressiveStopLoss = calculateStopLoss(
         price,
-        AGGRESSIVE_SHORT_STOP_LOSS_DEVIATION
+        AGGRESSIVE_SHORT_STOP_LOSS_DEVIATION,
+        this._pricePrecision
       );
 
       let updatedStopLoss: number | null = null;
@@ -367,10 +396,10 @@ export class Trader {
       }
 
       if (updatedStopLoss) {
-        const stopLossDeviation = toFixed(calculatePercentageDifference(
-          this.short.entryPrice,
-          updatedStopLoss
-        ), 2);
+        const stopLossDeviation = toFixed(
+          calculatePercentageDifference(this.short.entryPrice, updatedStopLoss),
+          2
+        );
         log(`${this._contractCode} updates SHORT stop loss`);
         log(`Deviation - ${toFixed(currentPriceDeviation, 2)}%`);
         log(`Stop Loss Price - ${updatedStopLoss}`);

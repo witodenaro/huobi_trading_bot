@@ -7,7 +7,7 @@ export enum AssetSymbol {
 
 export enum MarketSymbol {
 	ETHUSDT = "ethusdt",
-	BTCUSDT = "bthusdt",
+	BTCUSDT = "btcusdt",
 	XNOUSDT = "nanousdt",
   ANCUSDT = "ancusdt",
 }
@@ -139,7 +139,7 @@ export interface Account {
 	profit_unreal: number;
 	risk_rate: number;
 	withdraw_available: number;
-	liquidation_price: null | null;
+	liquidation_price: null | number;
 	lever_rate: number;
 	adjust_factor: number;
 	margin_static: number;

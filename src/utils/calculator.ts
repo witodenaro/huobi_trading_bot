@@ -2,9 +2,13 @@ import { toFixed } from "./number";
 
 export const calculateStopLoss = (
   price: number,
-  stopLossPercentageDeviation: number
+  stopLossPercentageDeviation: number,
+  precision: number
 ) => {
-  return toFixed(price + (price * stopLossPercentageDeviation) / 100, 4);
+  return toFixed(
+    price + (price * stopLossPercentageDeviation) / 100,
+    precision
+  );
 };
 
 export const calculatePlainDifference = (
