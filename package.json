@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
-  "type": "module",
   "dependencies": {
     "@types/crypto-js": "^4.1.1",
     "@types/jest": "^27.5.0",
@@ -14,9 +13,7 @@
     "axios": "^0.27.2",
     "crypto-js": "^4.1.1",
     "dotenv": "^16.0.0",
-    "jest": "^28.1.0",
     "pako": "^2.0.4",
-    "ts-jest": "^28.0.1",
     "ts-node": "^10.7.0",
     "tslib": "^2.4.0",
     "typescript": "^4.6.3",
@@ -24,8 +21,7 @@
     "websocket": "^1.0.34"
   },
   "scripts": {
-    "start": "ts-node index.ts",
-    "test": "jest"
+    "start": "ts-node index.ts"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.22.0",
