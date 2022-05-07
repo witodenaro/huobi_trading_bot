@@ -70,7 +70,7 @@ export class Trader {
     if (short) {
       await this.syncShort(
         short.entryPrice,
-        short.amount,
+        short.volume,
         short.state,
         short.orderId
       );
@@ -79,7 +79,7 @@ export class Trader {
     if (long) {
       await this.syncLong(
         long.entryPrice,
-        long.amount,
+        long.volume,
         long.state,
         long.orderId
       );

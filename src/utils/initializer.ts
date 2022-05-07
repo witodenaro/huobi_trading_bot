@@ -14,16 +14,16 @@ import {
   OpenOrder,
   OrderOffset,
 } from "../types/order";
-import { toFixed } from "./number";
+import { getPrecision, toFixed } from "./number";
 
 export type AccountPos = {
   entryPrice: number;
-  amount: number;
+  volume: number;
 };
 
 export type AccountOrder = {
   entryPrice: number;
-  amount: number;
+  volume: number;
   orderId: string;
 };
 
@@ -40,18 +40,17 @@ type OpenOrdersInfo = {
 
 export type AccountOrderPos = {
   entryPrice: number;
-  amount: number;
+  volume: number;
   state: PositionState;
   orderId?: string;
 };
 
 const getPosInfo = ({
   cost_open: entryPrice,
-  position_margin: margin,
-  last_price: lastPrice,
+  volume,
 }: AccountPosition): AccountPos => ({
   entryPrice,
-  amount: margin / lastPrice,
+  volume,
 });
 
 export const searchForAccount = (accounts: Account[]) => {
@@ -109,7 +108,7 @@ export const parseOpenOrders = (openOrders: OpenOrder[]) => {
 
       const orderInfo: AccountOrder = {
         entryPrice: order.price,
-        amount: order.margin_frozen / order.price,
+        volume: order.margin_frozen / order.price,
         orderId: order.order_id_str,
       };
 
@@ -160,14 +159,13 @@ export const getAccountPositionsOrders = async (
   const contract = searchForContract(contracts.data.data);
 
   if (!contract) {
-    throw new Error(
-      `${contractCode} couldn't find contract.`
-    );
+    throw new Error(`${contractCode} couldn't find contract.`);
   }
 
   const contractSize = parseContract(contract);
   const accountInfo = parseAccount(account);
   const orderInfo = parseOpenOrders(orders.data.data.orders);
+  const volumePrecision = getPrecision(contractSize);
 
   const { short: shortOrder, long: longOrder } = orderInfo;
   const { short: shortPosition, long: longPosition } = accountInfo;
@@ -180,9 +178,9 @@ export const getAccountPositionsOrders = async (
     short = {
       entryPrice:
         shortOrder?.entryPrice || (shortPosition as AccountPos).entryPrice,
-      amount: toFixed(
-        (shortOrder?.amount || 0) + (shortPosition?.amount || 0),
-        2
+      volume: toFixed(
+        (shortOrder?.volume || 0) + (shortPosition?.volume || 0),
+        volumePrecision
       ),
       orderId: shortOrder?.orderId,
       state: shortState,
@@ -194,8 +192,8 @@ export const getAccountPositionsOrders = async (
     long = {
       entryPrice:
         longOrder?.entryPrice || (longPosition as AccountPos).entryPrice,
-      amount: toFixed(
-        (longOrder?.amount || 0) + (longPosition?.amount || 0),
+      volume: toFixed(
+        (longOrder?.volume || 0) + (longPosition?.volume || 0),
         2
       ),
       orderId: longOrder?.orderId,

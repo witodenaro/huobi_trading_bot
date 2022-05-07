@@ -1,8 +1,5 @@
 import { placeOrder } from "../api/linear-swap-api/v1/swap_order";
-import {
-  Order,
-  placeStopLossTakeProfit,
-} from "../api/linear-swap-api/v1/swap_tpsl_order";
+import { placeStopLossTakeProfit } from "../api/linear-swap-api/v1/swap_tpsl_order";
 import {
   ContractCode,
   Direction,
