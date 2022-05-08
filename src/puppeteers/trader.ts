@@ -1,12 +1,7 @@
 import {
   LONG_STOP_LOSS_DEVIATION,
-  CONSERVATIVE_LONG_STOP_LOSS_DEVIATION,
-  CONSERVATIVE_SHORT_STOP_LOSS_DEVIATION,
-  INTERMEDIATE_SHORT_STOP_LOSS_DEVIATION,
-  INTERMEDIATE_STOP_LOSS_BREAKPOINT,
-  CONSERVATIVE_STOP_LOSS_BREAKPOINT,
-  INTERMEDIATE_LONG_STOP_LOSS_DEVIATION,
   SHORT_STOP_LOSS_DEVIATION,
+  STOP_LOSS_DEVIATION,
 } from "./trader.data";
 import {
   OrderFeedee,
@@ -248,53 +243,27 @@ export class Trader {
         this.long.entryPrice,
         price
       );
-      const conservativeStopLoss = calculateStopLoss(
+      const stopLoss = calculateStopLoss(
         price,
-        CONSERVATIVE_LONG_STOP_LOSS_DEVIATION,
-        this._pricePrecision
-      );
-      const intermediateStopLoss = calculateStopLoss(
-        price,
-        INTERMEDIATE_LONG_STOP_LOSS_DEVIATION,
+        LONG_STOP_LOSS_DEVIATION,
         this._pricePrecision
       );
 
-      let updatedStopLoss: number | null = null;
-      /*
-				Depending on the price deviation I use different risk management strategies
-
-				More margin = more space for corrections
-			*/
-      switch (true) {
-        // e.g. Price went up 5% -> set stop loss at -2.5% of the current price
-        case currentPriceDeviation > INTERMEDIATE_STOP_LOSS_BREAKPOINT:
-          if (this.long.stopLossPrice < intermediateStopLoss) {
-            updatedStopLoss = intermediateStopLoss;
-          }
-          break;
-
-        // e.g. Price went up 2% -> set stop loss at -1% of the current price
-        case currentPriceDeviation > CONSERVATIVE_STOP_LOSS_BREAKPOINT:
-          if (this.long.stopLossPrice < conservativeStopLoss) {
-            updatedStopLoss = conservativeStopLoss;
-          }
-          break;
-        default:
-          break;
-      }
-
-      if (updatedStopLoss) {
+      if (
+        currentPriceDeviation > STOP_LOSS_DEVIATION &&
+        stopLoss > this.long.stopLossPrice
+      ) {
         const stopLossDeviation = toFixed(
-          calculatePercentageDifference(this.long.entryPrice, updatedStopLoss),
+          calculatePercentageDifference(this.long.entryPrice, stopLoss),
           2
         );
 
         log(`${this._contractCode} updates LONG stop loss`);
         log(`Deviation - ${toFixed(currentPriceDeviation, 2)}%`);
-        log(`Stop Loss Price - ${updatedStopLoss}`);
+        log(`Stop Loss Price - ${stopLoss}`);
         log(`Stop Loss Deviation - ${toFixed(stopLossDeviation, 2)}%`);
         log("");
-        await this.long.updateStopLoss(updatedStopLoss);
+        await this.long.updateStopLoss(stopLoss);
       }
     }
 
@@ -304,53 +273,27 @@ export class Trader {
         this.short.entryPrice,
         price
       );
-      const conservativeStopLoss = calculateStopLoss(
+
+      const stopLoss = calculateStopLoss(
         price,
-        CONSERVATIVE_SHORT_STOP_LOSS_DEVIATION,
-        this._pricePrecision
-      );
-      const intermediateStopLoss = calculateStopLoss(
-        price,
-        INTERMEDIATE_SHORT_STOP_LOSS_DEVIATION,
+        SHORT_STOP_LOSS_DEVIATION,
         this._pricePrecision
       );
 
-      let updatedStopLoss: number | null = null;
-
-      /*
-				Depending on the price deviation I use different risk management strategies
-
-				More margin = more space for corrections
-			*/
-      switch (true) {
-        // e.g. Price went down 5% -> set stop loss at +2.5% of the current price
-        case currentPriceDeviation < -INTERMEDIATE_STOP_LOSS_BREAKPOINT:
-          if (this.short.stopLossPrice > intermediateStopLoss) {
-            updatedStopLoss = intermediateStopLoss;
-          }
-          break;
-
-        // e.g. Price went down 2% -> set stop loss at +1% of the current price
-        case currentPriceDeviation < -CONSERVATIVE_STOP_LOSS_BREAKPOINT:
-          if (this.short.stopLossPrice > conservativeStopLoss) {
-            updatedStopLoss = conservativeStopLoss;
-          }
-          break;
-        default:
-          break;
-      }
-
-      if (updatedStopLoss) {
+      if (
+        currentPriceDeviation < -STOP_LOSS_DEVIATION &&
+        stopLoss < this.short.stopLossPrice
+      ) {
         const stopLossDeviation = toFixed(
-          calculatePercentageDifference(this.short.entryPrice, updatedStopLoss),
+          calculatePercentageDifference(this.short.entryPrice, stopLoss),
           2
         );
         log(`${this._contractCode} updates SHORT stop loss`);
         log(`Deviation - ${toFixed(currentPriceDeviation, 2)}%`);
-        log(`Stop Loss Price - ${updatedStopLoss}`);
+        log(`Stop Loss Price - ${stopLoss}`);
         log(`Stop Loss Deviation - ${toFixed(stopLossDeviation, 2)}%`);
         log("");
-        await this.short.updateStopLoss(updatedStopLoss);
+        await this.short.updateStopLoss(stopLoss);
       }
     }
   }
