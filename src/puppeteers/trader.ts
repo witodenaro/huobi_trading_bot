@@ -1,5 +1,7 @@
 import {
+  LONG_SAFE_STOP_LOSS_DEVIATION,
   LONG_STOP_LOSS_DEVIATION,
+  SHORT_SAFE_STOP_LOSS_DEVIATION,
   SHORT_STOP_LOSS_DEVIATION,
   STOP_LOSS_DEVIATION,
 } from "./trader.data";
@@ -245,7 +247,7 @@ export class Trader {
       );
       const stopLoss = calculateStopLoss(
         price,
-        LONG_STOP_LOSS_DEVIATION,
+        LONG_SAFE_STOP_LOSS_DEVIATION,
         this._pricePrecision
       );
 
@@ -276,7 +278,7 @@ export class Trader {
 
       const stopLoss = calculateStopLoss(
         price,
-        SHORT_STOP_LOSS_DEVIATION,
+        SHORT_SAFE_STOP_LOSS_DEVIATION,
         this._pricePrecision
       );
 
