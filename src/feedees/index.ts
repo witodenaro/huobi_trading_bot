@@ -1,8 +1,8 @@
-import AncOrderFeedee from "./orders/ancOrder";
 import BtcOrderFeedee from "./orders/btcOrder";
+import EthOrderFeedee from "./orders/ethOrder";
 
-import AncPriceFeedee from "./prices/ancPrice";
 import BtcPriceFeedee from "./prices/btcPrice";
+import EthPriceFeedee from "./prices/ethPrice";
 
-export const priceFeedees = [AncPriceFeedee, BtcPriceFeedee];
-export const orderFeedees = [AncOrderFeedee, BtcOrderFeedee];
+export const priceFeedees = [BtcPriceFeedee, EthPriceFeedee];
+export const orderFeedees = [BtcOrderFeedee, EthOrderFeedee];

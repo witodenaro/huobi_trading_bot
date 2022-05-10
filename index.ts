@@ -1,10 +1,10 @@
 import { initSocketConnection } from "./src/connection/sockets";
 
-import AncOrderFeedee from "./src/feedees/orders/ancOrder";
 import BtcOrderFeedee from "./src/feedees/orders/btcOrder";
+import EthOrderFeedee from "./src/feedees/orders/ethOrder";
 
-import AncPriceFeedee from "./src/feedees/prices/ancPrice";
 import BtcPriceFeedee from "./src/feedees/prices/btcPrice";
+import EthPriceFeedee from "./src/feedees/prices/ethPrice";
 
 import { Trader } from "./src/puppeteers/trader";
 import { ContractCode } from "./src/types/order";
@@ -19,12 +19,12 @@ const init = async () => {
   );
   await btcTrader.init();
 
-  const ancTrader = new Trader(
-    ContractCode.ANC_USDT,
-    AncPriceFeedee,
-    AncOrderFeedee
+  const ethTrader = new Trader(
+    ContractCode.ETH_USDT,
+    EthPriceFeedee,
+    EthOrderFeedee
   );
-  await ancTrader.init();
+  await ethTrader.init();
 };
 
 init();
