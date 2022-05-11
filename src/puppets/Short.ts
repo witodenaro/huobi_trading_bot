@@ -57,7 +57,6 @@ export class Short extends Position {
       const { sl_order } = response.data.data;
 
       this.setStopLoss(sl_order);
-      this.stopLossPrice = price;
     } else {
       throw new Error(response.data.err_msg);
     }

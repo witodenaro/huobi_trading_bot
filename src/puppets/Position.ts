@@ -44,7 +44,12 @@ export abstract class Position {
     }
   }
 
-  updateStopLoss = debounced(this._updateStopLoss, UPDATE_DEBOUNCE);
+  updateStopLoss = (stopLossPrice: number) => {
+    this.stopLossPrice = stopLossPrice;
+    this._debouncedUpdateStopLoss(stopLossPrice);
+  };
+
+  _debouncedUpdateStopLoss = debounced(this._updateStopLoss.bind(this), UPDATE_DEBOUNCE);
 
   async _updateStopLoss(stopLossPrice: number) {
     if (this.stopLossOrder) {
