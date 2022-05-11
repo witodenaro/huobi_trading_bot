@@ -3,8 +3,10 @@ import { SLTLOrderDigest } from "../api/linear-swap-api/v1/swap_tpsl_order";
 import { OrderNotification } from "../feedees/types";
 import { ContractCode, OrderSource, OrderStatus } from "../types/order";
 import { calculatePercentageDifference } from "../utils/calculator";
+import { debounced } from "../utils/debouncer";
 import { log } from "../utils/logger";
 import { toFixed } from "../utils/number";
+import { UPDATE_DEBOUNCE } from "./Position.data";
 
 export enum PositionState {
   INITIALIZED = "initialized",
@@ -30,14 +32,21 @@ export abstract class Position {
     if (!this.isInitialized()) {
       throw new Error("Can't open position if it's state is not 'Initialized'");
     }
-    
+
     log(
       `${this.contractCode} position order placed at ${this.entryPrice} for ${this.volume}`
     );
-    await this._placeOrder();
+
+    try {
+      await this._placeOrder();
+    } catch (err) {
+      log(`${this.contractCode} error opening orders`, err);
+    }
   }
 
-  async updateStopLoss(stopLossPrice: number) {
+  updateStopLoss = debounced(this._updateStopLoss, UPDATE_DEBOUNCE);
+
+  async _updateStopLoss(stopLossPrice: number) {
     if (this.stopLossOrder) {
       try {
         await this._cancelStopLoss();
@@ -79,7 +88,12 @@ export abstract class Position {
           log(`Entry price - ${this.entryPrice}`);
           log(`Volume - ${this.volume}`);
           log(`Closed price - ${price}`);
-          log(`Deviation - ${toFixed(calculatePercentageDifference(this.entryPrice, price), 2)}%`);
+          log(
+            `Deviation - ${toFixed(
+              calculatePercentageDifference(this.entryPrice, price),
+              2
+            )}%`
+          );
           log("");
           this.state = PositionState.CLOSED;
           break;

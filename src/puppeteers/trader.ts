@@ -259,11 +259,13 @@ export class Trader {
         );
 
         log(`${this._contractCode} updates LONG stop loss`);
+        log(`Current Price - ${price}`);
         log(`Deviation - ${toFixed(currentPriceDeviation, 2)}%`);
         log(`Stop Loss Price - ${stopLoss}`);
         log(`Stop Loss Deviation - ${toFixed(stopLossDeviation, 2)}%`);
         log("");
-        await this.long.updateStopLoss(stopLoss);
+
+        this.long.updateStopLoss(stopLoss);
       }
     }
 
@@ -289,11 +291,13 @@ export class Trader {
           2
         );
         log(`${this._contractCode} updates SHORT stop loss`);
+        log(`Current Price - ${price}`);
         log(`Deviation - ${toFixed(currentPriceDeviation, 2)}%`);
         log(`Stop Loss Price - ${stopLoss}`);
         log(`Stop Loss Deviation - ${toFixed(stopLossDeviation, 2)}%`);
         log("");
-        await this.short.updateStopLoss(stopLoss);
+
+        this.short.updateStopLoss(stopLoss);
       }
     }
   }
