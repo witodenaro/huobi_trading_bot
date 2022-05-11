@@ -1,1 +1,1 @@
-export const UPDATE_DEBOUNCE = 100;
+export const UPDATE_DEBOUNCE = 250;
