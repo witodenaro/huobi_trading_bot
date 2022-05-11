@@ -63,7 +63,11 @@ export class Trader {
 
     const latestPrice = this.getLatestPrice();
 
-    this._pricePrecision = getPrecision(latestPrice);
+    if (this._contractCode === ContractCode.BTC_USDT) {
+      this._pricePrecision = 1;
+    } else {
+      this._pricePrecision = getPrecision(latestPrice);
+    }
 
     if (short) {
       await this.syncShort(short);
